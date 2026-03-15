@@ -56,6 +56,7 @@ export type DiaryStackParamList = {
   DiaryList: undefined;
   DiaryDetail: { id: string };
   DiaryEdit: { id?: string };
+  DiaryReport: { reportId: string; periodType: string };
   DiaryAnalysis: undefined;
   AnalysisResult: { reportId: string };
   AnalysisSettings: undefined;

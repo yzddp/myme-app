@@ -56,7 +56,28 @@ api.interceptors.request.use(
  */
 api.interceptors.response.use(
   (response: AxiosResponse) => {
-    return response.data;
+    const data = response.data;
+    const url = response.config.url || "";
+
+    // 如果是成功响应并且有data字段，直接返回data
+    // 后端返回格式: { success: true, data: {...}, message: "..." }
+    if (data && data.success === true && data.data !== undefined) {
+      // 如果data是数组，根据URL端点返回对应格式
+      if (Array.isArray(data.data)) {
+        // 根据端点名称确定返回的字段名
+        if (url.includes("/avatars")) {
+          return { avatars: data.data };
+        } else if (
+          url.includes("/sessions") ||
+          url.includes("/conversations")
+        ) {
+          return { sessions: data.data, total: data.data.length };
+        }
+        return { items: data.data, total: data.data.length };
+      }
+      return data.data;
+    }
+    return data;
   },
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & {
@@ -93,7 +114,7 @@ api.interceptors.response.use(
     }
 
     // 统一错误处理
-    const errorMessage = getErrorMessage(error);
+    const errorMessage = getErrorMessage(error, originalRequest.url);
     return Promise.reject(new Error(errorMessage));
   },
 );
@@ -101,11 +122,24 @@ api.interceptors.response.use(
 /**
  * 获取错误消息
  */
-const getErrorMessage = (error: AxiosError): string => {
+const getErrorMessage = (error: AxiosError, requestUrl?: string): string => {
   if (error.response) {
-    // 服务器返回错误
     const status = error.response.status;
     const data = error.response.data as any;
+    const message = data?.message || "";
+
+    // 登录接口的特殊错误处理
+    if (
+      requestUrl?.includes("/auth/login") ||
+      requestUrl?.includes("/auth/register")
+    ) {
+      if (status === 401) {
+        return "邮箱或密码错误，请重新输入";
+      }
+      if (status === 409) {
+        return message || "该邮箱已被注册";
+      }
+    }
 
     switch (status) {
       case 400:
@@ -116,16 +150,16 @@ const getErrorMessage = (error: AxiosError): string => {
         return "没有权限访问";
       case 404:
         return "请求的资源不存在";
+      case 409:
+        return data?.message || "资源冲突";
       case 500:
         return "服务器内部错误";
       default:
         return data?.message || "请求失败";
     }
   } else if (error.request) {
-    // 网络错误
     return "网络连接失败，请检查网络";
   } else {
-    // 其他错误
     return error.message || "请求失败";
   }
 };

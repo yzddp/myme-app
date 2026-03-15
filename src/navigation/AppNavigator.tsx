@@ -28,6 +28,7 @@ import AvatarListScreen from "../screens/avatar/AvatarListScreen";
 import AvatarCreateScreen from "../screens/avatar/AvatarCreateScreen";
 import DiaryListScreen from "../screens/diary/DiaryListScreen";
 import DiaryEditScreen from "../screens/diary/DiaryEditScreen";
+import DiaryReportScreen from "../screens/diary/DiaryReportScreen";
 import ProfileScreen from "../screens/settings/ProfileScreen";
 
 // 创建导航器
@@ -98,6 +99,7 @@ function DiaryStackNavigator() {
     <DiaryStack.Navigator screenOptions={{ headerShown: false }}>
       <DiaryStack.Screen name="DiaryList" component={DiaryListScreen} />
       <DiaryStack.Screen name="DiaryEdit" component={DiaryEditScreen} />
+      <DiaryStack.Screen name="DiaryReport" component={DiaryReportScreen} />
     </DiaryStack.Navigator>
   );
 }

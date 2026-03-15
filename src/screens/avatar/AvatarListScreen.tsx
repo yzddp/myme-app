@@ -109,7 +109,12 @@ export default function AvatarListScreen() {
         />
       )}
 
-      <FAB icon="plus" style={styles.fab} onPress={() => {}} label="创建分身" />
+      <FAB
+        icon="plus"
+        style={styles.fab}
+        onPress={() => navigation.navigate("AvatarCreate")}
+        label="创建分身"
+      />
     </View>
   );
 }

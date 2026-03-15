@@ -16,8 +16,10 @@ import { useAuthStore } from "../../store/authStore";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "../../navigation/types";
-import { COLORS } from "../../constants/colors";
+import { THEMES } from "../../constants/colors";
 import { authService } from "../../services/authService";
+
+const COLORS = THEMES.cool;
 
 export default function RegisterScreen() {
   const navigation =

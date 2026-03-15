@@ -3,37 +3,71 @@
  * 创建分身页面
  */
 
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Text, TextInput, Button, Chip, SegmentedButtons } from 'react-native-paper';
-import { COLORS } from '../../constants/colors';
+import React, { useState } from "react";
+import { View, StyleSheet, ScrollView, Alert } from "react-native";
+import {
+  Text,
+  TextInput,
+  Button,
+  Chip,
+  SegmentedButtons,
+} from "react-native-paper";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { COLORS } from "../../constants/colors";
+import { avatarService } from "../../services/avatarService";
+import type { AvatarStackParamList } from "../../navigation/types";
+
+type NavigationProp = NativeStackNavigationProp<AvatarStackParamList>;
 
 const SCENARIOS = [
-  { value: 'interview', label: '面试' },
-  { value: 'work', label: '工作' },
-  { value: 'dating', label: '相亲' },
-  { value: 'consultation', label: '咨询' },
+  { value: "interview", label: "面试" },
+  { value: "work", label: "工作" },
+  { value: "dating", label: "相亲" },
+  { value: "consultation", label: "咨询" },
 ];
 
-const MODULES = ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9', 'M10'];
+const MODULES = ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10"];
 
 export default function AvatarCreateScreen() {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [scenario, setScenario] = useState('interview');
+  const navigation = useNavigation<NavigationProp>();
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [scenario, setScenario] = useState("interview");
   const [permissions, setPermissions] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const togglePermission = (module: string) => {
     if (permissions.includes(module)) {
-      setPermissions(permissions.filter(p => p !== module));
+      setPermissions(permissions.filter((p) => p !== module));
     } else {
       setPermissions([...permissions, module]);
     }
   };
 
-  const handleCreate = () => {
-    // TODO: 调用创建分身API
-    console.log({ name, description, scenario, permissions });
+  const handleCreate = async () => {
+    if (!name || permissions.length === 0) {
+      Alert.alert("提示", "请填写分身名称并选择至少一个授权模块");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await avatarService.create({
+        name,
+        description,
+        scenario: scenario as any,
+        permissions: permissions as any,
+      });
+      Alert.alert("成功", "分身创建成功", [
+        { text: "确定", onPress: () => navigation.goBack() },
+      ]);
+    } catch (error) {
+      console.error("Failed to create avatar:", error);
+      Alert.alert("错误", "分身创建失败");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -81,7 +115,11 @@ export default function AvatarCreateScreen() {
                 styles.moduleChip,
                 permissions.includes(module) && styles.moduleChipSelected,
               ]}
-              textStyle={permissions.includes(module) ? styles.moduleChipTextSelected : undefined}
+              textStyle={
+                permissions.includes(module)
+                  ? styles.moduleChipTextSelected
+                  : undefined
+              }
             >
               {module}
             </Chip>
@@ -92,7 +130,8 @@ export default function AvatarCreateScreen() {
           mode="contained"
           onPress={handleCreate}
           style={styles.button}
-          disabled={!name || permissions.length === 0}
+          disabled={!name || permissions.length === 0 || loading}
+          loading={loading}
         >
           创建分身
         </Button>
@@ -113,7 +152,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.textOnPrimary,
   },
   form: {
@@ -124,7 +163,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.textPrimary,
     marginBottom: 8,
     marginTop: 8,
@@ -138,8 +177,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   moduleList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     marginBottom: 24,
   },
   moduleChip: {

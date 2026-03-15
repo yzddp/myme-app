@@ -3,7 +3,7 @@
  * 日记编辑页面
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -11,18 +11,54 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { Text, TextInput, Button, Icon } from "react-native-paper";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import type { RouteProp } from "@react-navigation/native";
 import { COLORS } from "../../constants/colors";
+import { diaryService } from "../../services/diaryService";
+import type { DiaryStackParamList } from "../../navigation/types";
+
+type EditRouteProp = RouteProp<DiaryStackParamList, "DiaryEdit">;
 
 export default function DiaryEditScreen() {
   const navigation = useNavigation();
+  const route = useRoute<EditRouteProp>();
+  const { id } = route.params || {};
   const [content, setContent] = useState("");
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  useEffect(() => {
+    if (id) {
+      loadDiary();
+    }
+  }, [id]);
+
+  const loadDiary = async () => {
+    if (!id) return;
+    try {
+      setLoading(true);
+      const diary = await diaryService.getDiary(id);
+      setContent(diary.content);
+    } catch (error) {
+      console.error("Failed to load diary:", error);
+      Alert.alert("错误", "加载日记失败");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleBack = () => {
-    navigation.goBack();
+    if (content.trim()) {
+      Alert.alert("确认返回", "内容尚未保存，确定要返回吗？", [
+        { text: "取消", style: "cancel" },
+        { text: "确定", onPress: () => navigation.goBack() },
+      ]);
+    } else {
+      navigation.goBack();
+    }
   };
 
   const handleSave = async () => {
@@ -30,9 +66,20 @@ export default function DiaryEditScreen() {
 
     setSaving(true);
     try {
-      console.log("Saving diary:", content);
+      if (id) {
+        await diaryService.update(id, { content });
+        Alert.alert("成功", "日记已更新", [
+          { text: "确定", onPress: () => navigation.goBack() },
+        ]);
+      } else {
+        await diaryService.create(content);
+        Alert.alert("成功", "日记已保存", [
+          { text: "确定", onPress: () => navigation.goBack() },
+        ]);
+      }
     } catch (error) {
       console.error("Save failed:", error);
+      Alert.alert("错误", "保存日记失败");
     } finally {
       setSaving(false);
     }
