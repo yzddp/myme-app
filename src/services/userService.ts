@@ -9,12 +9,32 @@ import type { User } from "../store/authStore";
 const USER_ENDPOINTS = {
   base: "/user",
   profile: "/user/profile",
+  avatar: "/user/avatar",
+  notifications: "/user/notifications",
+  data: "/user/data",
 };
 
 export interface UpdateProfileRequest {
   nickname?: string;
+  bio?: string;
   theme?: "warm" | "cool" | "dark";
   locale?: string;
+}
+
+export interface NotificationSettings {
+  diaryReminder: boolean;
+  aiInsight: boolean;
+  marketing: boolean;
+  email: boolean;
+}
+
+export interface UserData {
+  totalDiaries: number;
+  totalChats: number;
+  totalAgents: number;
+  totalAvatars: number;
+  streak: number;
+  lastActive: string;
 }
 
 export const userService = {
@@ -33,6 +53,45 @@ export const userService = {
    */
   async updateProfile(data: UpdateProfileRequest): Promise<User> {
     return apiService.put<User>(USER_ENDPOINTS.profile, data);
+  },
+
+  /**
+   * 更新用户头像
+   * @param avatarId 头像ID
+   * @returns 更新后的用户资料
+   */
+  async updateAvatar(avatarId: string): Promise<User> {
+    return apiService.put<User>(USER_ENDPOINTS.avatar, { avatarId });
+  },
+
+  /**
+   * 获取通知设置
+   * @returns 通知设置
+   */
+  async getNotificationSettings(): Promise<NotificationSettings> {
+    return apiService.get<NotificationSettings>(USER_ENDPOINTS.notifications);
+  },
+
+  /**
+   * 更新通知设置
+   * @param settings 通知设置
+   * @returns 更新后的通知设置
+   */
+  async updateNotificationSettings(
+    settings: NotificationSettings,
+  ): Promise<NotificationSettings> {
+    return apiService.put<NotificationSettings>(
+      USER_ENDPOINTS.notifications,
+      settings,
+    );
+  },
+
+  /**
+   * 获取用户数据统计
+   * @returns 用户数据统计
+   */
+  async getUserData(): Promise<UserData> {
+    return apiService.get<UserData>(USER_ENDPOINTS.data);
   },
 
   /**

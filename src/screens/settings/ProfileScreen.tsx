@@ -11,21 +11,19 @@ import {
   Alert,
   TouchableOpacity,
 } from "react-native";
-import {
-  Text,
-  Avatar,
-  Card,
-  Button,
-  List,
-  Divider,
-  Switch,
-} from "react-native-paper";
+import { Text, Avatar, Card, Button, List, Divider } from "react-native-paper";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useAuthStore } from "../../store/authStore";
 import { userService } from "../../services/userService";
 import { COLORS } from "../../constants/colors";
 import type { User } from "../../types/auth";
+import type { ProfileStackParamList } from "../../navigation/types";
+
+type NavigationProp = NativeStackNavigationProp<ProfileStackParamList>;
 
 export default function ProfileScreen() {
+  const navigation = useNavigation<NavigationProp>();
   const { user, logout, updateUser } = useAuthStore();
   const [profileData, setProfileData] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
@@ -88,23 +86,23 @@ export default function ProfileScreen() {
   };
 
   const handleSecurityPress = () => {
-    Alert.alert("安全", "安全设置功能开发中");
+    navigation.navigate("Security");
   };
 
   const handleNotificationPress = () => {
-    Alert.alert("通知", "通知设置功能开发中");
+    navigation.navigate("NotificationSettings");
   };
 
   const handleDataPress = () => {
-    Alert.alert("我的数据", "数据统计功能开发中");
+    navigation.navigate("MyData");
   };
 
   const handleAvatarPress = () => {
-    Alert.alert("更换头像", "头像更换功能开发中");
+    navigation.navigate("UserAvatar");
   };
 
   const handleProfileEditPress = () => {
-    Alert.alert("编辑资料", "资料编辑功能开发中");
+    navigation.navigate("ProfileEdit");
   };
 
   const handleLogout = () => {

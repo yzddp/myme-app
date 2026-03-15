@@ -65,8 +65,11 @@ export type DiaryStackParamList = {
 // Profile栈
 export type ProfileStackParamList = {
   Profile: undefined;
-  Settings: undefined;
-  About: undefined;
+  ProfileEdit: undefined;
+  UserAvatar: undefined;
+  MyData: undefined;
+  NotificationSettings: undefined;
+  Security: undefined;
 };
 
 // 组合所有栈

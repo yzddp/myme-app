@@ -10,6 +10,8 @@ export interface User {
   username: string | null;
   nickname: string | null;
   name: string | null;
+  bio: string | null;
+  avatarId: string | null;
   theme: "warm" | "cool" | "dark";
   locale: string;
   failedLoginAttempts?: number;

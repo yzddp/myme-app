@@ -30,6 +30,11 @@ import DiaryListScreen from "../screens/diary/DiaryListScreen";
 import DiaryEditScreen from "../screens/diary/DiaryEditScreen";
 import DiaryReportScreen from "../screens/diary/DiaryReportScreen";
 import ProfileScreen from "../screens/settings/ProfileScreen";
+import ProfileEditScreen from "../screens/settings/ProfileEditScreen";
+import UserAvatarScreen from "../screens/settings/UserAvatarScreen";
+import MyDataScreen from "../screens/settings/MyDataScreen";
+import NotificationSettingsScreen from "../screens/settings/NotificationSettingsScreen";
+import SecurityScreen from "../screens/settings/SecurityScreen";
 
 // 创建导航器
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -111,6 +116,14 @@ function ProfileStackNavigator() {
   return (
     <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
       <ProfileStack.Screen name="Profile" component={ProfileScreen} />
+      <ProfileStack.Screen name="ProfileEdit" component={ProfileEditScreen} />
+      <ProfileStack.Screen name="UserAvatar" component={UserAvatarScreen} />
+      <ProfileStack.Screen name="MyData" component={MyDataScreen} />
+      <ProfileStack.Screen
+        name="NotificationSettings"
+        component={NotificationSettingsScreen}
+      />
+      <ProfileStack.Screen name="Security" component={SecurityScreen} />
     </ProfileStack.Navigator>
   );
 }
