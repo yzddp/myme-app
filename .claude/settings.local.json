@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "WebSearch",
+      "WebFetch(domain:til.simonwillison.net)",
+      "Bash(claude mcp:*)",
+      "Bash(npx playwright:*)",
+      "Bash(cd:*)",
+      "Bash(curl:*)",
+      "Bash(while read:*)",
+      "Bash(do grep:*)",
+      "Bash(done)"
+    ]
+  }
+}

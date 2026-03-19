@@ -3,23 +3,22 @@
  * 日记卡片组件
  */
 
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
-import { COLORS } from '../constants/colors';
-import type { DiaryEntry, DiarySentiment } from '../types/diary';
-
-/** 情感颜色映射 */
-const SENTIMENT_COLORS: Record<DiarySentiment, string> = {
-  positive: COLORS.sentimentPositive,
-  neutral: COLORS.sentimentNeutral,
-  negative: COLORS.sentimentNegative,
-};
+import React, { useMemo } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ViewStyle,
+} from "react-native";
+import { useTheme } from "../context/ThemeContext";
+import type { DiaryEntry, DiarySentiment } from "../types/diary";
 
 /** 情感名称映射 */
 const SENTIMENT_NAMES: Record<DiarySentiment, string> = {
-  positive: '积极',
-  neutral: '中性',
-  negative: '消极',
+  positive: "积极",
+  neutral: "中性",
+  negative: "消极",
 };
 
 interface DiaryCardProps {
@@ -46,35 +45,173 @@ export const DiaryCard: React.FC<DiaryCardProps> = ({
   onDelete,
   style,
 }) => {
+  const { colors } = useTheme();
+
+  const SENTIMENT_COLORS: Record<DiarySentiment, string> = {
+    positive: colors.sentimentPositive,
+    neutral: colors.sentimentNeutral,
+    negative: colors.sentimentNegative,
+  };
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          backgroundColor: colors.surface,
+          borderRadius: 16,
+          padding: 16,
+          marginVertical: 8,
+          marginHorizontal: 16,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.08,
+          shadowRadius: 4,
+          elevation: 2,
+        },
+        header: {
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 12,
+        },
+        dateText: {
+          fontSize: 14,
+          fontWeight: "600",
+          color: colors.textPrimary,
+        },
+        sentimentTag: {
+          flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: 10,
+          paddingVertical: 4,
+          borderRadius: 12,
+        },
+        sentimentDot: {
+          width: 8,
+          height: 8,
+          borderRadius: 4,
+          marginRight: 6,
+        },
+        sentimentText: {
+          fontSize: 12,
+          fontWeight: "600",
+        },
+        content: {
+          fontSize: 15,
+          color: colors.textPrimary,
+          lineHeight: 22,
+          marginBottom: 10,
+        },
+        summaryContainer: {
+          flexDirection: "row",
+          backgroundColor: colors.surfaceVariant,
+          padding: 10,
+          borderRadius: 8,
+          marginBottom: 10,
+        },
+        summaryLabel: {
+          fontSize: 13,
+          color: colors.textSecondary,
+          fontWeight: "500",
+          marginRight: 6,
+        },
+        summaryText: {
+          fontSize: 13,
+          color: colors.textSecondary,
+          flex: 1,
+          lineHeight: 18,
+        },
+        keywordsContainer: {
+          flexDirection: "row",
+          flexWrap: "wrap",
+          marginBottom: 12,
+        },
+        keywordTag: {
+          backgroundColor: colors.primaryLight + "30",
+          paddingHorizontal: 10,
+          paddingVertical: 4,
+          borderRadius: 12,
+          marginRight: 6,
+          marginBottom: 4,
+        },
+        keywordText: {
+          fontSize: 12,
+          color: colors.primary,
+        },
+        moreKeywordsText: {
+          fontSize: 12,
+          color: colors.textTertiary,
+          alignSelf: "center",
+          marginLeft: 4,
+        },
+        footer: {
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingTop: 12,
+          borderTopWidth: 1,
+          borderTopColor: colors.divider,
+        },
+        wordCount: {
+          fontSize: 12,
+          color: colors.textTertiary,
+        },
+        actions: {
+          flexDirection: "row",
+        },
+        actionButton: {
+          paddingHorizontal: 14,
+          paddingVertical: 6,
+          marginLeft: 8,
+        },
+        analyzeText: {
+          fontSize: 13,
+          color: colors.primary,
+          fontWeight: "600",
+        },
+        deleteButton: {},
+        deleteText: {
+          fontSize: 13,
+          color: colors.error,
+        },
+      }),
+    [colors],
+  );
+
   // 截断内容
-  const truncateContent = (content: string, maxLength: number = 120): string => {
+  const truncateContent = (
+    content: string,
+    maxLength: number = 120,
+  ): string => {
     if (content.length <= maxLength) return content;
-    return content.substring(0, maxLength) + '...';
+    return content.substring(0, maxLength) + "...";
   };
 
   // 格式化日期
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
+    );
 
     // 今天
     if (diffDays === 0) {
-      return `今天 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+      return `今天 ${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
     }
     // 昨天
     if (diffDays === 1) {
-      return '昨天';
+      return "昨天";
     }
     // 一周内
     if (diffDays < 7) {
-      const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+      const weekDays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
       return weekDays[date.getDay()];
     }
     // 更早
-    return date.toLocaleDateString('zh-CN', {
-      month: 'short',
-      day: 'numeric',
+    return date.toLocaleDateString("zh-CN", {
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -86,15 +223,13 @@ export const DiaryCard: React.FC<DiaryCardProps> = ({
     >
       {/* 头部：日期和情感 */}
       <View style={styles.header}>
-        <Text style={styles.dateText}>
-          {formatDate(diary.createdAt)}
-        </Text>
-        
+        <Text style={styles.dateText}>{formatDate(diary.createdAt)}</Text>
+
         {diary.sentiment && (
           <View
             style={[
               styles.sentimentTag,
-              { backgroundColor: SENTIMENT_COLORS[diary.sentiment] + '20' },
+              { backgroundColor: SENTIMENT_COLORS[diary.sentiment] + "20" },
             ]}
           >
             <View
@@ -149,9 +284,7 @@ export const DiaryCard: React.FC<DiaryCardProps> = ({
       {/* 底部操作 */}
       <View style={styles.footer}>
         {/* 字数统计 */}
-        <Text style={styles.wordCount}>
-          {diary.content.length} 字
-        </Text>
+        <Text style={styles.wordCount}>{diary.content.length} 字</Text>
 
         {/* 操作按钮 */}
         <View style={styles.actions}>
@@ -176,126 +309,5 @@ export const DiaryCard: React.FC<DiaryCardProps> = ({
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 16,
-    padding: 16,
-    marginVertical: 8,
-    marginHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  dateText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  sentimentTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  sentimentDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
-  },
-  sentimentText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  content: {
-    fontSize: 15,
-    color: COLORS.textPrimary,
-    lineHeight: 22,
-    marginBottom: 10,
-  },
-  summaryContainer: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.surfaceVariant,
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  summaryLabel: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    fontWeight: '500',
-    marginRight: 6,
-  },
-  summaryText: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    flex: 1,
-    lineHeight: 18,
-  },
-  keywordsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 12,
-  },
-  keywordTag: {
-    backgroundColor: COLORS.primaryLight + '30',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginRight: 6,
-    marginBottom: 4,
-  },
-  keywordText: {
-    fontSize: 12,
-    color: COLORS.primary,
-  },
-  moreKeywordsText: {
-    fontSize: 12,
-    color: COLORS.textTertiary,
-    alignSelf: 'center',
-    marginLeft: 4,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.divider,
-  },
-  wordCount: {
-    fontSize: 12,
-    color: COLORS.textTertiary,
-  },
-  actions: {
-    flexDirection: 'row',
-  },
-  actionButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    marginLeft: 8,
-  },
-  analyzeText: {
-    fontSize: 13,
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-  deleteButton: {},
-  deleteText: {
-    fontSize: 13,
-    color: COLORS.error,
-  },
-});
 
 export default DiaryCard;

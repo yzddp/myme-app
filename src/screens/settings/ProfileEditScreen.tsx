@@ -12,18 +12,86 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { Text, TextInput, Button, Avatar } from "react-native-paper";
+import {
+  Text,
+  TextInput,
+  Button,
+  Avatar,
+  IconButton,
+} from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import { useAuthStore } from "../../store/authStore";
 import { userService } from "../../services/userService";
-import { COLORS } from "../../constants/colors";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function ProfileEditScreen() {
+  const { colors } = useTheme();
   const navigation = useNavigation();
   const { user, updateUser } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [nickname, setNickname] = useState(user?.nickname || "");
   const [bio, setBio] = useState(user?.bio || "");
+
+  useEffect(() => {
+    if (user?.nickname) setNickname(user.nickname);
+    if (user?.bio) setBio(user.bio);
+  }, [user?.nickname, user?.bio]);
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      paddingTop: 48,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: colors.primary,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: "bold",
+      color: colors.textOnPrimary,
+    },
+    content: {
+      flex: 1,
+      padding: 20,
+    },
+    avatarContainer: {
+      alignItems: "center",
+      marginBottom: 32,
+    },
+    avatar: {
+      backgroundColor: colors.primary,
+    },
+    avatarHint: {
+      marginTop: 12,
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    form: {
+      marginBottom: 24,
+    },
+    input: {
+      marginBottom: 16,
+      backgroundColor: colors.surface,
+    },
+    charCount: {
+      textAlign: "right",
+      fontSize: 12,
+      color: colors.textTertiary,
+      marginTop: -8,
+      marginBottom: 8,
+    },
+    saveButton: {
+      marginBottom: 12,
+      backgroundColor: colors.primary,
+    },
+    cancelButton: {
+      borderColor: colors.border,
+    },
+  });
 
   const handleSave = async () => {
     if (!nickname.trim()) {
@@ -38,9 +106,7 @@ export default function ProfileEditScreen() {
         bio: bio.trim() || undefined,
       });
       updateUser(updatedUser);
-      Alert.alert("成功", "资料已更新", [
-        { text: "确定", onPress: () => navigation.goBack() },
-      ]);
+      navigation.goBack();
     } catch (error) {
       console.error("Failed to update profile:", error);
       Alert.alert("错误", "资料更新失败，请重试");
@@ -59,7 +125,14 @@ export default function ProfileEditScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View style={styles.header}>
+        <IconButton
+          icon="arrow-left"
+          iconColor={colors.textOnPrimary}
+          size={24}
+          onPress={() => navigation.goBack()}
+        />
         <Text style={styles.title}>编辑资料</Text>
+        <View style={{ width: 48 }} />
       </View>
 
       <ScrollView style={styles.content}>
@@ -73,6 +146,14 @@ export default function ProfileEditScreen() {
         </View>
 
         <View style={styles.form}>
+          <TextInput
+            label="邮箱"
+            value={user?.email || ""}
+            mode="outlined"
+            style={styles.input}
+            disabled
+          />
+
           <TextInput
             label="昵称"
             value={nickname}
@@ -117,57 +198,3 @@ export default function ProfileEditScreen() {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  header: {
-    padding: 20,
-    paddingTop: 48,
-    backgroundColor: COLORS.primary,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: COLORS.textOnPrimary,
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-  },
-  avatarContainer: {
-    alignItems: "center",
-    marginBottom: 32,
-  },
-  avatar: {
-    backgroundColor: COLORS.primary,
-  },
-  avatarHint: {
-    marginTop: 12,
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  form: {
-    marginBottom: 24,
-  },
-  input: {
-    marginBottom: 16,
-    backgroundColor: COLORS.surface,
-  },
-  charCount: {
-    textAlign: "right",
-    fontSize: 12,
-    color: COLORS.textTertiary,
-    marginTop: -8,
-    marginBottom: 8,
-  },
-  saveButton: {
-    marginBottom: 12,
-    backgroundColor: COLORS.primary,
-  },
-  cancelButton: {
-    borderColor: COLORS.border,
-  },
-});

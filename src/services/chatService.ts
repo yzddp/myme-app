@@ -18,7 +18,6 @@ import type {
 // API路径
 const CHAT_ENDPOINTS = {
   sessions: '/agent/sessions',
-  session: '/agent/session',
   message: '/agent/message',
 };
 
@@ -32,7 +31,7 @@ export const chatService = {
    * @returns 会话信息
    */
   async getOrCreateSession(request?: CreateSessionRequest): Promise<Session> {
-    return apiService.post<Session>(CHAT_ENDPOINTS.session, request);
+    return apiService.post<Session>(CHAT_ENDPOINTS.sessions, request);
   },
 
   /**
@@ -45,12 +44,12 @@ export const chatService = {
   },
 
   /**
-   * 获取单个会话详情
+   * 获取单个会话详情（含消息列表）
    * @param sessionId 会话ID
    * @returns 会话详情
    */
   async getSession(sessionId: string): Promise<Session> {
-    return apiService.get<Session>(`${CHAT_ENDPOINTS.session}/${sessionId}`);
+    return apiService.get<Session>(`${CHAT_ENDPOINTS.sessions}/${sessionId}`);
   },
 
   /**
@@ -59,25 +58,25 @@ export const chatService = {
    * @returns 响应消息
    */
   async sendMessage(request: SendMessageRequest): Promise<SendMessageResponse> {
+    const { sessionId } = request;
+    if (sessionId) {
+      return apiService.post<SendMessageResponse>(
+        `${CHAT_ENDPOINTS.sessions}/${sessionId}/messages`,
+        { content: request.content }
+      );
+    }
     return apiService.post<SendMessageResponse>(CHAT_ENDPOINTS.message, request);
   },
 
   /**
-   * 获取会话消息列表
+   * 获取会话消息列表（通过会话详情接口）
    * @param sessionId 会话ID
-   * @param page 页码
-   * @param limit 每页数量
    * @returns 消息列表
    */
-  async getMessages(
-    sessionId: string,
-    page?: number,
-    limit?: number
-  ): Promise<MessageListResponse> {
-    return apiService.get<MessageListResponse>(
-      `${CHAT_ENDPOINTS.sessions}/${sessionId}/messages`,
-      { page, limit }
-    );
+  async getMessages(sessionId: string): Promise<MessageListResponse> {
+    const session = await apiService.get<any>(`${CHAT_ENDPOINTS.sessions}/${sessionId}`);
+    const messages = session.messages || [];
+    return { messages, total: messages.length, page: 1, limit: messages.length };
   },
 
   /**
@@ -85,7 +84,7 @@ export const chatService = {
    * @param sessionId 会话ID
    */
   async deleteSession(sessionId: string): Promise<void> {
-    return apiService.delete(`${CHAT_ENDPOINTS.session}/${sessionId}`);
+    return apiService.delete(`${CHAT_ENDPOINTS.sessions}/${sessionId}`);
   },
 
   /**
@@ -94,8 +93,8 @@ export const chatService = {
    * @param title 会话标题
    * @returns 新会话
    */
-  async createSession(type?: SessionType, title?: string): Promise<Session> {
-    const request: CreateSessionRequest = { type, title };
+  async createSession(type?: SessionType, title?: string, agentType?: string): Promise<Session> {
+    const request: CreateSessionRequest = { type, title, agentType };
     return apiService.post<Session>(CHAT_ENDPOINTS.sessions, request);
   },
 };

@@ -11,9 +11,10 @@ import axios, {
 } from "axios";
 import { storage } from "../utils/storage";
 import { Alert } from "react-native";
+import { useAuthStore } from "../store/authStore";
 
 // 从环境变量获取配置
-const API_URL = "http://192.168.31.196:8080";
+export const API_URL = "http://192.168.31.196:8080";
 const API_VERSION = "/api/v1";
 const TIMEOUT = 10000;
 
@@ -86,30 +87,15 @@ api.interceptors.response.use(
 
     // 处理401错误 - Token过期
     if (error.response?.status === 401) {
-      // 清除token
-      storage.delete(TOKEN_KEY);
-      storage.delete(REFRESH_TOKEN_KEY);
+      // 通过 authStore 登出，触发 AppNavigator 切回 Auth 栈
+      useAuthStore.getState().logout();
 
-      // 提示用户并跳转登录
-      Alert.alert("登录已过期", "您的登录已过期，请重新登录", [
-        {
-          text: "确定",
-          onPress: () => {
-            // 可以在这里触发导航到登录页面
-            // 需要在App层面处理导航跳转
-            // 通过事件或全局状态触发
-          },
-        },
-      ]);
+      // 提示用户
+      Alert.alert("登录已过期", "您的登录已过期，请重新登录");
 
       // 如果是刷新token的请求失败，不要重试
       if (originalRequest.url?.includes("/auth/refresh")) {
         return Promise.reject(error);
-      }
-
-      // 标记请求为重试，避免无限循环
-      if (!originalRequest._retry) {
-        originalRequest._retry = true;
       }
     }
 

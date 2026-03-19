@@ -1,6 +1,6 @@
 /**
  * MyMe App - Security Screen
- * 账号安全设置页面
+ * 账号安全设置页面 - PRD v3.0
  */
 
 import React, { useState } from "react";
@@ -12,14 +12,22 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { Text, TextInput, Button, Card, Divider } from "react-native-paper";
+import {
+  Text,
+  TextInput,
+  Button,
+  Card,
+  Divider,
+  IconButton,
+} from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import { userService } from "../../services/userService";
 import { useAuthStore } from "../../store/authStore";
-import { COLORS } from "../../constants/colors";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function SecurityScreen() {
   const navigation = useNavigation();
+  const { colors } = useTheme();
   const { user, logout } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
@@ -65,16 +73,6 @@ export default function SecurityScreen() {
     }
   };
 
-  const handleLogout = () => {
-    Alert.alert("退出登录", "确定要退出登录吗？", [
-      { text: "取消", style: "cancel" },
-      {
-        text: "确定",
-        onPress: () => logout(),
-      },
-    ]);
-  };
-
   const handleDeleteAccount = () => {
     Alert.alert(
       "注销账号",
@@ -94,30 +92,55 @@ export default function SecurityScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <View style={styles.header}>
-        <Text style={styles.title}>账号安全</Text>
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
+        <IconButton
+          icon="arrow-left"
+          iconColor={colors.textOnPrimary}
+          size={24}
+          onPress={() => navigation.goBack()}
+        />
+        <Text style={[styles.title, { color: colors.textOnPrimary }]}>
+          账号安全
+        </Text>
+        <View style={{ width: 48 }} />
       </View>
 
       <ScrollView style={styles.content}>
-        <Text style={styles.sectionTitle}>账号信息</Text>
-        <Card style={styles.card}>
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+          账号信息
+        </Text>
+        <Card style={[styles.card, { backgroundColor: colors.surface }]}>
           <Card.Content>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>邮箱</Text>
-              <Text style={styles.infoValue}>{user?.email}</Text>
+              <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
+                邮箱
+              </Text>
+              <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
+                {user?.email || "-"}
+              </Text>
             </View>
-            <Divider style={styles.divider} />
+            <Divider
+              style={[styles.divider, { backgroundColor: colors.divider }]}
+            />
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>用户名</Text>
-              <Text style={styles.infoValue}>{user?.username || "-"}</Text>
+              <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
+                用户名
+              </Text>
+              <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
+                {user?.username || "-"}
+              </Text>
             </View>
-            <Divider style={styles.divider} />
+            <Divider
+              style={[styles.divider, { backgroundColor: colors.divider }]}
+            />
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>注册时间</Text>
-              <Text style={styles.infoValue}>
+              <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
+                注册时间
+              </Text>
+              <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
                 {user?.createdAt
                   ? new Date(user.createdAt).toLocaleDateString("zh-CN")
                   : "-"}
@@ -126,8 +149,10 @@ export default function SecurityScreen() {
           </Card.Content>
         </Card>
 
-        <Text style={styles.sectionTitle}>修改密码</Text>
-        <Card style={styles.card}>
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+          修改密码
+        </Text>
+        <Card style={[styles.card, { backgroundColor: colors.surface }]}>
           <Card.Content>
             <TextInput
               label="当前密码"
@@ -135,7 +160,7 @@ export default function SecurityScreen() {
               onChangeText={setOldPassword}
               mode="outlined"
               secureTextEntry
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.surface }]}
             />
             <TextInput
               label="新密码"
@@ -143,7 +168,7 @@ export default function SecurityScreen() {
               onChangeText={setNewPassword}
               mode="outlined"
               secureTextEntry
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.surface }]}
             />
             <TextInput
               label="确认新密码"
@@ -151,43 +176,39 @@ export default function SecurityScreen() {
               onChangeText={setConfirmPassword}
               mode="outlined"
               secureTextEntry
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.surface }]}
             />
             <Button
               mode="contained"
               onPress={handleChangePassword}
               loading={loading}
               disabled={loading}
-              style={styles.button}
+              style={[styles.button, { backgroundColor: colors.primary }]}
             >
               修改密码
             </Button>
           </Card.Content>
         </Card>
 
-        <Text style={styles.sectionTitle}>其他操作</Text>
-        <Card style={styles.card}>
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+          危险操作
+        </Text>
+        <Card style={[styles.card, { backgroundColor: colors.surface }]}>
           <Card.Content>
-            <Button
-              mode="outlined"
-              onPress={handleLogout}
-              style={styles.outlineButton}
-              textColor={COLORS.primary}
-            >
-              退出登录
-            </Button>
             <Button
               mode="outlined"
               onPress={handleDeleteAccount}
               style={styles.dangerButton}
-              textColor={COLORS.error}
+              textColor={colors.error}
             >
               注销账号
             </Button>
           </Card.Content>
         </Card>
 
-        <Text style={styles.tip}>为保护您的账号安全，建议定期更换密码</Text>
+        <Text style={[styles.tip, { color: colors.textTertiary }]}>
+          为保护您的账号安全，建议定期更换密码
+        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -196,17 +217,16 @@ export default function SecurityScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   header: {
-    padding: 20,
     paddingTop: 48,
-    backgroundColor: COLORS.primary,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    color: COLORS.textOnPrimary,
   },
   content: {
     flex: 1,
@@ -215,13 +235,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: "bold",
-    color: COLORS.textSecondary,
     marginBottom: 8,
     marginTop: 16,
     paddingHorizontal: 4,
   },
   card: {
-    backgroundColor: COLORS.surface,
+    marginBottom: 12,
   },
   infoRow: {
     flexDirection: "row",
@@ -231,33 +250,24 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 16,
-    color: COLORS.textSecondary,
   },
   infoValue: {
     fontSize: 16,
-    color: COLORS.textPrimary,
   },
   divider: {
-    backgroundColor: COLORS.border,
+    height: 1,
   },
   input: {
     marginBottom: 12,
-    backgroundColor: COLORS.surface,
   },
   button: {
     marginTop: 8,
-    backgroundColor: COLORS.primary,
-  },
-  outlineButton: {
-    marginBottom: 12,
-    borderColor: COLORS.primary,
   },
   dangerButton: {
-    borderColor: COLORS.error,
+    borderColor: undefined,
   },
   tip: {
     fontSize: 12,
-    color: COLORS.textTertiary,
     textAlign: "center",
     marginTop: 24,
     marginBottom: 32,

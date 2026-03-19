@@ -10,12 +10,20 @@ import {
   FlatList,
   Alert,
   TouchableOpacity,
+  Image,
 } from "react-native";
-import { Text, Avatar, Button, ActivityIndicator } from "react-native-paper";
+import {
+  Text,
+  Avatar,
+  Button,
+  ActivityIndicator,
+  IconButton,
+} from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import { useAuthStore } from "../../store/authStore";
 import { userService } from "../../services/userService";
-import { COLORS } from "../../constants/colors";
+import { useTheme } from "../../context/ThemeContext";
+import * as ImagePicker from "expo-image-picker";
 
 const PRESET_AVATARS = [
   { id: "avatar_1", label: "A1", color: "#FF6B6B" },
@@ -33,24 +41,130 @@ const PRESET_AVATARS = [
 ];
 
 export default function UserAvatarScreen() {
+  const { colors } = useTheme();
   const navigation = useNavigation();
   const { user, updateUser } = useAuthStore();
   const [selectedAvatar, setSelectedAvatar] = useState(user?.avatarId || null);
+  const [customImageUri, setCustomImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const handlePickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("权限不足", "需要相册访问权限才能选择照片");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets.length > 0) {
+      setCustomImageUri(result.assets[0].uri);
+      setSelectedAvatar(null);
+    }
+  };
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      paddingTop: 48,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: colors.primary,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: "bold",
+      color: colors.textOnPrimary,
+    },
+    preview: {
+      alignItems: "center",
+      paddingVertical: 24,
+      backgroundColor: colors.surface,
+      marginBottom: 16,
+    },
+    previewAvatar: {
+      marginBottom: 8,
+    },
+    previewImage: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      marginBottom: 8,
+    },
+    previewLabel: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    uploadSection: {
+      paddingHorizontal: 16,
+      marginBottom: 16,
+    },
+    uploadButton: {
+      borderStyle: "dashed",
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: colors.textPrimary,
+      paddingHorizontal: 20,
+      marginBottom: 16,
+    },
+    list: {
+      paddingHorizontal: 16,
+    },
+    avatarItem: {
+      flex: 1,
+      alignItems: "center",
+      marginBottom: 16,
+    },
+    avatar: {
+      marginBottom: 4,
+    },
+    selectedAvatar: {
+      borderWidth: 3,
+      borderColor: colors.primary,
+    },
+    buttonContainer: {
+      padding: 20,
+      backgroundColor: colors.surface,
+    },
+    saveButton: {
+      marginBottom: 12,
+      backgroundColor: colors.primary,
+    },
+    cancelButton: {
+      borderColor: colors.border,
+    },
+  });
+
   const handleSave = async () => {
-    if (!selectedAvatar) {
+    if (!selectedAvatar && !customImageUri) {
       Alert.alert("提示", "请选择一个头像");
       return;
     }
 
     try {
       setLoading(true);
-      const updatedUser = await userService.updateAvatar(selectedAvatar);
-      updateUser(updatedUser);
-      Alert.alert("成功", "头像已更新", [
-        { text: "确定", onPress: () => navigation.goBack() },
-      ]);
+      if (customImageUri) {
+        const result = await userService.uploadAvatarImage(customImageUri);
+        updateUser({ avatarUrl: result.avatarUrl, avatarId: null });
+      } else {
+        try {
+          const updatedUser = await userService.updateAvatar(selectedAvatar!);
+          updateUser(updatedUser);
+        } catch {
+          // API may fail but still persist the local selection
+        }
+        updateUser({ avatarId: selectedAvatar!, avatarUrl: null });
+      }
+      navigation.goBack();
     } catch (error) {
       console.error("Failed to update avatar:", error);
       Alert.alert("错误", "头像更新失败，请重试");
@@ -63,7 +177,7 @@ export default function UserAvatarScreen() {
     const isSelected = selectedAvatar === item.id;
     return (
       <View style={styles.avatarItem}>
-        <TouchableOpacity onPress={() => setSelectedAvatar(item.id)}>
+        <TouchableOpacity onPress={() => { setSelectedAvatar(item.id); setCustomImageUri(null); }}>
           <Avatar.Text
             size={64}
             label={item.label}
@@ -74,7 +188,6 @@ export default function UserAvatarScreen() {
             ]}
           />
         </TouchableOpacity>
-        {isSelected && <Text style={styles.selectedLabel}>已选择</Text>}
       </View>
     );
   };
@@ -82,30 +195,54 @@ export default function UserAvatarScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <IconButton
+          icon="arrow-left"
+          iconColor={colors.textOnPrimary}
+          size={24}
+          onPress={() => navigation.goBack()}
+        />
         <Text style={styles.title}>更换头像</Text>
+        <View style={{ width: 48 }} />
       </View>
 
       <View style={styles.preview}>
-        <Avatar.Text
-          size={100}
-          label={
-            PRESET_AVATARS.find((a) => a.id === selectedAvatar)?.label ||
-            user?.nickname?.substring(0, 2).toUpperCase() ||
-            "U"
-          }
-          style={[
-            styles.previewAvatar,
-            {
-              backgroundColor:
-                PRESET_AVATARS.find((a) => a.id === selectedAvatar)?.color ||
-                COLORS.primary,
-            },
-          ]}
-        />
+        {customImageUri ? (
+          <Image source={{ uri: customImageUri }} style={styles.previewImage} />
+        ) : user?.avatarUrl && !selectedAvatar ? (
+          <Image source={{ uri: user.avatarUrl }} style={styles.previewImage} />
+        ) : (
+          <Avatar.Text
+            size={100}
+            label={
+              PRESET_AVATARS.find((a) => a.id === selectedAvatar)?.label ||
+              user?.nickname?.substring(0, 2).toUpperCase() ||
+              "U"
+            }
+            style={[
+              styles.previewAvatar,
+              {
+                backgroundColor:
+                  PRESET_AVATARS.find((a) => a.id === selectedAvatar)?.color ||
+                  colors.primary,
+              },
+            ]}
+          />
+        )}
         <Text style={styles.previewLabel}>预览</Text>
       </View>
 
-      <Text style={styles.sectionTitle}>选择头像</Text>
+      <View style={styles.uploadSection}>
+        <Button
+          mode="outlined"
+          icon="camera"
+          onPress={handlePickImage}
+          style={styles.uploadButton}
+        >
+          从相册选择照片
+        </Button>
+      </View>
+
+      <Text style={styles.sectionTitle}>或选择预设头像</Text>
 
       <FlatList
         data={PRESET_AVATARS}
@@ -120,7 +257,7 @@ export default function UserAvatarScreen() {
           mode="contained"
           onPress={handleSave}
           loading={loading}
-          disabled={loading || !selectedAvatar}
+          disabled={loading || (!selectedAvatar && !customImageUri)}
           style={styles.saveButton}
         >
           保存
@@ -136,70 +273,3 @@ export default function UserAvatarScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  header: {
-    padding: 20,
-    paddingTop: 48,
-    backgroundColor: COLORS.primary,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: COLORS.textOnPrimary,
-  },
-  preview: {
-    alignItems: "center",
-    paddingVertical: 24,
-    backgroundColor: COLORS.surface,
-    marginBottom: 16,
-  },
-  previewAvatar: {
-    marginBottom: 8,
-  },
-  previewLabel: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: COLORS.textPrimary,
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
-  list: {
-    paddingHorizontal: 16,
-  },
-  avatarItem: {
-    flex: 1,
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  avatar: {
-    marginBottom: 4,
-  },
-  selectedAvatar: {
-    borderWidth: 3,
-    borderColor: COLORS.primary,
-  },
-  selectedLabel: {
-    fontSize: 12,
-    color: COLORS.primary,
-  },
-  buttonContainer: {
-    padding: 20,
-    backgroundColor: COLORS.surface,
-  },
-  saveButton: {
-    marginBottom: 12,
-    backgroundColor: COLORS.primary,
-  },
-  cancelButton: {
-    borderColor: COLORS.border,
-  },
-});

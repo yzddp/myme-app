@@ -3,7 +3,7 @@
  * 知识项卡片组件
  */
 
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   ViewStyle,
 } from "react-native";
-import { COLORS } from "../constants/colors";
+import { useTheme } from "../context/ThemeContext";
 import type { KnowledgeItem, KnowledgeModule } from "../types/knowledge";
 
 interface KnowledgeCardProps {
@@ -59,6 +59,111 @@ export const KnowledgeCard: React.FC<KnowledgeCardProps> = ({
   onDelete,
   style,
 }) => {
+  const { colors } = useTheme();
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          backgroundColor: colors.surface,
+          borderRadius: 12,
+          padding: 16,
+          marginVertical: 6,
+          marginHorizontal: 16,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 3,
+        },
+        header: {
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 8,
+        },
+        moduleTag: {
+          paddingHorizontal: 10,
+          paddingVertical: 4,
+          borderRadius: 12,
+        },
+        moduleText: {
+          color: colors.textOnPrimary,
+          fontSize: 12,
+          fontWeight: "600",
+        },
+        sourceText: {
+          fontSize: 12,
+          color: colors.textTertiary,
+        },
+        title: {
+          fontSize: 16,
+          fontWeight: "600",
+          color: colors.textPrimary,
+          marginBottom: 6,
+        },
+        content: {
+          fontSize: 14,
+          color: colors.textSecondary,
+          lineHeight: 20,
+        },
+        tagsContainer: {
+          flexDirection: "row",
+          flexWrap: "wrap",
+          marginTop: 10,
+          alignItems: "center",
+        },
+        tag: {
+          backgroundColor: colors.surfaceVariant,
+          paddingHorizontal: 8,
+          paddingVertical: 3,
+          borderRadius: 10,
+          marginRight: 6,
+          marginBottom: 4,
+        },
+        tagText: {
+          fontSize: 12,
+          color: colors.textSecondary,
+        },
+        moreTagsText: {
+          fontSize: 12,
+          color: colors.textTertiary,
+          marginLeft: 4,
+        },
+        footer: {
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: 12,
+          paddingTop: 12,
+          borderTopWidth: 1,
+          borderTopColor: colors.divider,
+        },
+        dateText: {
+          fontSize: 12,
+          color: colors.textTertiary,
+        },
+        actions: {
+          flexDirection: "row",
+        },
+        actionButton: {
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+          marginLeft: 8,
+        },
+        actionText: {
+          fontSize: 13,
+          color: colors.primary,
+          fontWeight: "500",
+        },
+        deleteButton: {},
+        deleteText: {
+          color: colors.error,
+        },
+      }),
+    [colors],
+  );
+
   // 截断内容
   const truncateContent = (
     content: string,
@@ -80,7 +185,7 @@ export const KnowledgeCard: React.FC<KnowledgeCardProps> = ({
 
   // 获取模块颜色 - PRD v3.0: 统一使用primary
   const getModuleColor = (module: KnowledgeModule): string => {
-    return COLORS.primary;
+    return colors.primary;
   };
 
   return (
@@ -159,104 +264,5 @@ export const KnowledgeCard: React.FC<KnowledgeCardProps> = ({
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 6,
-    marginHorizontal: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  moduleTag: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  moduleText: {
-    color: COLORS.textOnPrimary,
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  sourceText: {
-    fontSize: 12,
-    color: COLORS.textTertiary,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: COLORS.textPrimary,
-    marginBottom: 6,
-  },
-  content: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    lineHeight: 20,
-  },
-  tagsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginTop: 10,
-    alignItems: "center",
-  },
-  tag: {
-    backgroundColor: COLORS.surfaceVariant,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-    marginRight: 6,
-    marginBottom: 4,
-  },
-  tagText: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
-  moreTagsText: {
-    fontSize: 12,
-    color: COLORS.textTertiary,
-    marginLeft: 4,
-  },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.divider,
-  },
-  dateText: {
-    fontSize: 12,
-    color: COLORS.textTertiary,
-  },
-  actions: {
-    flexDirection: "row",
-  },
-  actionButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginLeft: 8,
-  },
-  actionText: {
-    fontSize: 13,
-    color: COLORS.primary,
-    fontWeight: "500",
-  },
-  deleteButton: {},
-  deleteText: {
-    color: COLORS.error,
-  },
-});
 
 export default KnowledgeCard;

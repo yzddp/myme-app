@@ -4,101 +4,113 @@
  * 统一使用主品牌色，不再使用不同颜色区分M1-M10
  */
 
+import { Appearance } from "react-native";
+
 export type ThemeMode = "warm" | "cool" | "dark";
 
 export const THEMES = {
   warm: {
-    primary: "#C87D56",
-    primaryLight: "#D99B7A",
-    primaryDark: "#A8653D",
-    secondary: "#8FA998",
-    secondaryLight: "#A8C0B2",
-    secondaryDark: "#6F8A78",
-    background: "#FFF8F0",
-    surface: "#FFF8F0",
-    surfaceVariant: "#F5EBE0",
-    textPrimary: "#2D3E50",
-    textSecondary: "#4A5568",
-    textTertiary: "#A0AEC0",
+    // 暖色系：奶油盐系 (Creamy Salt)
+    primary: "#A68A74",
+    primaryLight: "#BBA08E",
+    primaryDark: "#8C6E5C",
+    secondary: "#D4C9C0",
+    secondaryLight: "#E5DDD6",
+    secondaryDark: "#C4B9AE",
+    background: "#FBF9F7",
+    surface: "#FBF9F7",
+    surfaceVariant: "#F0EBE6",
+    textPrimary: "#322D29",
+    textSecondary: "#6B635E",
+    textTertiary: "#B8B1AC",
     textOnPrimary: "#FFFFFF",
     success: "#8FA998",
     warning: "#D4A574",
-    error: "#C87D56",
+    error: "#C0392B",
     info: "#7BA3C8",
-    border: "rgba(150,130,110,0.15)",
-    divider: "rgba(150,130,110,0.08)",
-    userBubble: "#C87D56",
-    agentBubble: "#FFF8F0",
+    border: "rgba(166,138,116,0.15)",
+    divider: "rgba(166,138,116,0.08)",
+    userBubble: "#A68A74",
+    agentBubble: "#FFFFFF",
     userBubbleText: "#FFFFFF",
-    agentBubbleText: "#2D3E50",
+    agentBubbleText: "#322D29",
     sentimentPositive: "#8FA998",
     sentimentNeutral: "#D4A574",
-    sentimentNegative: "#C87D56",
+    sentimentNegative: "#A68A74",
   },
   cool: {
-    primary: "#0077B6",
-    primaryLight: "#3399CC",
-    primaryDark: "#005A8C",
-    secondary: "#00A86B",
-    secondaryLight: "#33C08E",
-    secondaryDark: "#008852",
-    background: "#FFFFFF",
-    surface: "#FFFFFF",
-    surfaceVariant: "#F5F5F5",
-    textPrimary: "#1A1A1A",
-    textSecondary: "#666666",
-    textTertiary: "#999999",
+    // 冷色系：冰川极简 (Glacier Minimal) - 默认
+    primary: "#5A7D9A",
+    primaryLight: "#7A9BB0",
+    primaryDark: "#3E6078",
+    secondary: "#ADC1D2",
+    secondaryLight: "#C5D5E2",
+    secondaryDark: "#8FA8BF",
+    background: "#F4F7F9",
+    surface: "#F4F7F9",
+    surfaceVariant: "#E8EDF2",
+    textPrimary: "#1E293B",
+    textSecondary: "#475569",
+    textTertiary: "#94A3B8",
     textOnPrimary: "#FFFFFF",
     success: "#00A86B",
     warning: "#D4A574",
-    error: "#0077B6",
+    error: "#C0392B",
     info: "#5B9BD5",
-    border: "rgba(0,0,0,0.1)",
-    divider: "rgba(0,0,0,0.08)",
-    userBubble: "#0077B6",
-    agentBubble: "#F0F0F0",
+    border: "rgba(90,125,154,0.12)",
+    divider: "rgba(90,125,154,0.08)",
+    userBubble: "#5A7D9A",
+    agentBubble: "#FFFFFF",
     userBubbleText: "#FFFFFF",
-    agentBubbleText: "#1A1A1A",
+    agentBubbleText: "#1E293B",
     sentimentPositive: "#00A86B",
     sentimentNeutral: "#D4A574",
-    sentimentNegative: "#0077B6",
+    sentimentNegative: "#5A7D9A",
   },
   dark: {
-    primary: "#BB86FC",
-    primaryLight: "#D4A5FF",
-    primaryDark: "#9B67DB",
-    secondary: "#03DAC6",
-    secondaryLight: "#3EE8D8",
-    secondaryDark: "#02B5A3",
-    background: "#1A1C1E",
-    surface: "#1A1C1E",
-    surfaceVariant: "#252629",
-    textPrimary: "#E1E1E1",
-    textSecondary: "#A0AEC0",
-    textTertiary: "#6B7280",
-    textOnPrimary: "#1A1C1E",
+    // 暗色系：深邃黑曜 (Obsidian Night)
+    primary: "#8E9AAF",
+    primaryLight: "#A8B4C4",
+    primaryDark: "#6E7A8C",
+    secondary: "#3E4451",
+    secondaryLight: "#4E5461",
+    secondaryDark: "#2E3441",
+    background: "#121417",
+    surface: "#121417",
+    surfaceVariant: "#1E2228",
+    textPrimary: "#F1F5F9",
+    textSecondary: "#94A3B8",
+    textTertiary: "#4B5563",
+    textOnPrimary: "#121417",
     success: "#03DAC6",
     warning: "#D4A574",
-    error: "#BB86FC",
+    error: "#CF6679",
     info: "#7B68A8",
-    border: "rgba(0,0,0,0.5)",
-    divider: "rgba(0,0,0,0.3)",
-    userBubble: "#BB86FC",
-    agentBubble: "#252629",
-    userBubbleText: "#1A1C1E",
-    agentBubbleText: "#E1E1E1",
+    border: "rgba(0,0,0,0.4)",
+    divider: "rgba(0,0,0,0.25)",
+    userBubble: "#2A2E37",
+    agentBubble: "#1E2228",
+    userBubbleText: "#F1F5F9",
+    agentBubbleText: "#F1F5F9",
     sentimentPositive: "#03DAC6",
     sentimentNeutral: "#D4A574",
-    sentimentNegative: "#BB86FC",
+    sentimentNegative: "#8E9AAF",
   },
 };
 
 export type ThemeColors = typeof THEMES.warm;
 
 export const getThemeColors = (mode: ThemeMode): ThemeColors => {
-  return THEMES[mode] || THEMES.warm;
+  return THEMES[mode] || THEMES.cool;
 };
 
-export const COLORS = THEMES.warm;
+// 支持系统自动切换的主题
+export const getSystemTheme = (): ThemeMode => {
+  const colorScheme = Appearance.getColorScheme();
+  return colorScheme === "dark" ? "dark" : "cool";
+};
+
+// 静态默认导出，实际使用时应通过useTheme获取动态主题
+export const COLORS = THEMES.cool;
 
 export default COLORS;

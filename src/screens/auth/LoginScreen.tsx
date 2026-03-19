@@ -12,18 +12,16 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
-import { Text, TextInput, Button, useTheme } from "react-native-paper";
+import { Text, TextInput, Button } from "react-native-paper";
 import { useAuthStore } from "../../store/authStore";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "../../navigation/types";
-import { THEMES } from "../../constants/colors";
 import { authService } from "../../services/authService";
-
-const COLORS = THEMES.cool;
+import { useTheme } from "../../context/ThemeContext";
 
 export default function LoginScreen() {
-  const theme = useTheme();
+  const { colors } = useTheme();
   const navigation =
     useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { login } = useAuthStore();
@@ -52,6 +50,63 @@ export default function LoginScreen() {
       setLoading(false);
     }
   };
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: "center",
+      padding: 24,
+    },
+    header: {
+      alignItems: "center",
+      marginBottom: 48,
+    },
+    title: {
+      fontSize: 40,
+      fontWeight: "bold",
+      color: colors.primary,
+    },
+    subtitle: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      marginTop: 8,
+    },
+    form: {
+      width: "100%",
+    },
+    input: {
+      marginBottom: 16,
+    },
+    errorText: {
+      color: colors.error,
+      fontSize: 14,
+      marginBottom: 16,
+      textAlign: "center",
+    },
+    button: {
+      marginTop: 8,
+      borderRadius: 8,
+    },
+    buttonContent: {
+      paddingVertical: 8,
+    },
+    linkButton: {
+      marginTop: 8,
+    },
+    registerContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: 24,
+    },
+    registerText: {
+      color: colors.textSecondary,
+    },
+  });
 
   return (
     <KeyboardAvoidingView
@@ -100,7 +155,7 @@ export default function LoginScreen() {
 
           <Button
             mode="text"
-            onPress={() => Alert.alert("忘记密码", "请联系客服找回密码")}
+            onPress={() => navigation.navigate("ForgotPassword")}
             style={styles.linkButton}
           >
             忘记密码？
@@ -121,60 +176,3 @@ export default function LoginScreen() {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: "center",
-    padding: 24,
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: 48,
-  },
-  title: {
-    fontSize: 40,
-    fontWeight: "bold",
-    color: COLORS.primary,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    marginTop: 8,
-  },
-  form: {
-    width: "100%",
-  },
-  input: {
-    marginBottom: 16,
-  },
-  errorText: {
-    color: COLORS.error,
-    fontSize: 14,
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  button: {
-    marginTop: 8,
-    borderRadius: 8,
-  },
-  buttonContent: {
-    paddingVertical: 8,
-  },
-  linkButton: {
-    marginTop: 8,
-  },
-  registerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 24,
-  },
-  registerText: {
-    color: COLORS.textSecondary,
-  },
-});

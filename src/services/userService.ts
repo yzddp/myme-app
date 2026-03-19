@@ -12,6 +12,7 @@ const USER_ENDPOINTS = {
   avatar: "/user/avatar",
   notifications: "/user/notifications",
   data: "/user/data",
+  feedback: "/feedback",
 };
 
 export interface UpdateProfileRequest {
@@ -107,6 +108,36 @@ export const userService = {
       oldPassword,
       newPassword,
     });
+  },
+  /**
+   * 上传自定义头像图片
+   * @param imageUri 本地图片URI
+   * @returns { avatarUrl: string } 服务端存储的头像路径
+   */
+  async uploadAvatarImage(imageUri: string): Promise<{ avatarUrl: string }> {
+    const formData = new FormData();
+    const filename = imageUri.split("/").pop() || "avatar.jpg";
+    const ext = (filename.split(".").pop() || "jpg").toLowerCase();
+    formData.append("avatar", {
+      uri: imageUri,
+      name: filename,
+      type: `image/${ext}`,
+    } as any);
+    return apiService.upload<{ avatarUrl: string }>(
+      `${USER_ENDPOINTS.profile}/avatar`,
+      formData,
+    );
+  },
+
+  /**
+   * 提交意见反馈
+   */
+  async submitFeedback(data: {
+    type: string;
+    content: string;
+    contact?: string;
+  }): Promise<void> {
+    return apiService.post(USER_ENDPOINTS.feedback, data);
   },
 };
 

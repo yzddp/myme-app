@@ -3,20 +3,29 @@
  * 知识库列表页面
  */
 
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
-import { Text, Card, Button, FAB } from 'react-native-paper';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS } from '../../constants/colors';
-import { useKnowledgeStore } from '../../store/knowledgeStore';
-import { KnowledgeCard, ModuleSelector } from '../../components';
-import type { KnowledgeModule } from '../../types/knowledge';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  RefreshControl,
+  TouchableOpacity,
+} from "react-native";
+import { Text, Card, Button, FAB, IconButton } from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useTheme } from "../../context/ThemeContext";
+import { useKnowledgeStore } from "../../store/knowledgeStore";
+import { KnowledgeCard, ModuleSelector } from "../../components";
+import type { KnowledgeModule } from "../../types/knowledge";
 
 interface KnowledgeListScreenProps {
   navigation?: any;
 }
 
-export const KnowledgeListScreen: React.FC<KnowledgeListScreenProps> = ({ navigation }) => {
+export const KnowledgeListScreen: React.FC<KnowledgeListScreenProps> = ({
+  navigation,
+}) => {
+  const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
 
   const {
@@ -27,12 +36,21 @@ export const KnowledgeListScreen: React.FC<KnowledgeListScreenProps> = ({ naviga
     loadModules,
     loadByModule,
     setCurrentModule,
-    delete: deleteItem,  // use the delete action from store
+    delete: deleteItem, // use the delete action from store
   } = useKnowledgeStore();
 
   useEffect(() => {
     loadModules();
   }, []);
+
+  useEffect(() => {
+    if (!navigation) return;
+    const unsubscribe = navigation.addListener("focus", () => {
+      loadModules();
+      if (currentModule) loadByModule(currentModule);
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   useEffect(() => {
     if (currentModule) {
@@ -54,11 +72,11 @@ export const KnowledgeListScreen: React.FC<KnowledgeListScreenProps> = ({ naviga
   };
 
   const handleCreate = () => {
-    navigation?.navigate?.('KnowledgeEdit', { module: currentModule });
+    navigation?.navigate?.("KnowledgeEdit", { module: currentModule });
   };
 
   const handleEdit = (item: any) => {
-    navigation?.navigate?.('KnowledgeEdit', { item });
+    navigation?.navigate?.("KnowledgeEdit", { item });
   };
 
   const handleDelete = async (item: any) => {
@@ -66,16 +84,22 @@ export const KnowledgeListScreen: React.FC<KnowledgeListScreenProps> = ({ naviga
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>知识库</Text>
-        <Text style={styles.subtitle}>M1-M10 分类管理</Text>
+    <SafeAreaView style={styles(colors).container}>
+      <View style={styles(colors).header}>
+        <IconButton
+          icon="arrow-left"
+          iconColor={colors.textPrimary}
+          size={24}
+          onPress={() => navigation?.goBack?.()}
+        />
+        <View>
+          <Text style={styles(colors).title}>知识库</Text>
+          <Text style={styles(colors).subtitle}>M1-M10 分类管理</Text>
+        </View>
+        <View style={{ width: 48 }} />
       </View>
 
-      <ModuleSelector
-        selected={currentModule}
-        onSelect={handleModuleSelect}
-      />
+      <ModuleSelector selected={currentModule} onSelect={handleModuleSelect} />
 
       <FlatList
         data={items}
@@ -92,18 +116,22 @@ export const KnowledgeListScreen: React.FC<KnowledgeListScreenProps> = ({ naviga
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>暂无知识条目</Text>
-            <Button mode="contained" onPress={handleCreate} style={styles.createButton}>
+          <View style={styles(colors).emptyContainer}>
+            <Text style={styles(colors).emptyText}>暂无知识条目</Text>
+            <Button
+              mode="contained"
+              onPress={handleCreate}
+              style={styles(colors).createButton}
+            >
               添加第一条知识
             </Button>
           </View>
         }
-        style={styles.list}
+        style={styles(colors).list}
       />
 
       <FAB
-        style={styles.fab}
+        style={styles(colors).fab}
         icon="plus"
         onPress={handleCreate}
         label="添加"
@@ -112,46 +140,50 @@ export const KnowledgeListScreen: React.FC<KnowledgeListScreenProps> = ({ naviga
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  header: {
-    padding: 20,
-    paddingBottom: 10,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: COLORS.textPrimary,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginTop: 4,
-  },
-  list: {
-    flex: 1,
-  },
-  emptyContainer: {
-    padding: 40,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    marginBottom: 16,
-  },
-  createButton: {
-    width: '80%',
-  },
-  fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 0,
-  },
-});
+const styles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      padding: 20,
+      paddingBottom: 10,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: "bold",
+      color: colors.textPrimary,
+    },
+    subtitle: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginTop: 4,
+    },
+    list: {
+      flex: 1,
+    },
+    emptyContainer: {
+      padding: 40,
+      alignItems: "center",
+    },
+    emptyText: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      marginBottom: 16,
+    },
+    createButton: {
+      width: "80%",
+    },
+    fab: {
+      position: "absolute",
+      margin: 16,
+      right: 0,
+      bottom: 0,
+    },
+  });
 
 export default KnowledgeListScreen;

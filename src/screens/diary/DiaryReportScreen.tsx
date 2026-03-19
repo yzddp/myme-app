@@ -11,18 +11,20 @@ import {
   Chip,
   ActivityIndicator,
   Divider,
+  IconButton,
 } from "react-native-paper";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { DiaryStackParamList } from "../../navigation/types";
-import { COLORS } from "../../constants/colors";
+import { useTheme } from "../../context/ThemeContext";
 import { diaryService } from "../../services/diaryService";
 import type { DiaryAnalysisReport } from "../../types/diary";
 
 type ReportRouteProp = RouteProp<DiaryStackParamList, "DiaryReport">;
 
 export default function DiaryReportScreen() {
+  const { colors } = useTheme();
   const route = useRoute<ReportRouteProp>();
   const navigation =
     useNavigation<NativeStackNavigationProp<DiaryStackParamList>>();
@@ -75,10 +77,134 @@ export default function DiaryReportScreen() {
     return `${report.startDate} - ${report.endDate}`;
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    loading: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: colors.background,
+    },
+    header: {
+      paddingTop: 48,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: colors.primary,
+    },
+    headerTitleContainer: {
+      flex: 1,
+      alignItems: "center",
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: "bold",
+      color: colors.textOnPrimary,
+    },
+    subtitle: {
+      fontSize: 14,
+      color: colors.textOnPrimary,
+      opacity: 0.8,
+      marginTop: 4,
+    },
+    content: {
+      flex: 1,
+      padding: 16,
+    },
+    card: {
+      marginBottom: 16,
+      backgroundColor: colors.surface,
+    },
+    text: {
+      color: colors.textPrimary,
+      lineHeight: 24,
+    },
+    sentimentRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+      marginBottom: 12,
+    },
+    sentimentChip: {
+      marginRight: 8,
+    },
+    metaText: {
+      color: colors.textSecondary,
+      fontSize: 14,
+      marginTop: 8,
+    },
+    tagList: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+    },
+    tagChip: {
+      marginRight: 8,
+      marginBottom: 8,
+      backgroundColor: colors.surfaceVariant,
+    },
+    findingItem: {
+      marginBottom: 12,
+      padding: 12,
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: 8,
+    },
+    findingText: {
+      color: colors.textPrimary,
+      lineHeight: 20,
+    },
+    adviceItem: {
+      marginBottom: 16,
+      padding: 12,
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: 8,
+    },
+    adviceText: {
+      color: colors.textPrimary,
+      lineHeight: 22,
+      marginBottom: 8,
+    },
+    adviceCategory: {
+      color: colors.primary,
+      fontSize: 12,
+    },
+    questionItem: {
+      marginBottom: 16,
+      padding: 12,
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: 8,
+    },
+    questionText: {
+      color: colors.textPrimary,
+      fontWeight: "bold",
+      lineHeight: 22,
+      marginBottom: 8,
+    },
+    questionContext: {
+      color: colors.textSecondary,
+      fontSize: 14,
+    },
+    empty: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    emptyText: {
+      fontSize: 16,
+      color: colors.textSecondary,
+    },
+    bottomPadding: {
+      height: 32,
+    },
+  });
+
   if (loading) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -99,8 +225,17 @@ export default function DiaryReportScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>{getPeriodLabel(periodType)}</Text>
-        <Text style={styles.subtitle}>{formatDateRange()}</Text>
+        <IconButton
+          icon="arrow-left"
+          iconColor={colors.textOnPrimary}
+          size={24}
+          onPress={() => navigation.goBack()}
+        />
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.title}>{getPeriodLabel(periodType)}</Text>
+          <Text style={styles.subtitle}>{formatDateRange()}</Text>
+        </View>
+        <View style={{ width: 48 }} />
       </View>
 
       <ScrollView style={styles.content}>
@@ -121,7 +256,7 @@ export default function DiaryReportScreen() {
                 <Chip
                   style={[
                     styles.sentimentChip,
-                    { backgroundColor: COLORS.sentimentPositive },
+                    { backgroundColor: colors.sentimentPositive },
                   ]}
                 >
                   积极 {report.sentimentData.percentage.positive.toFixed(0)}%
@@ -129,7 +264,7 @@ export default function DiaryReportScreen() {
                 <Chip
                   style={[
                     styles.sentimentChip,
-                    { backgroundColor: COLORS.sentimentNeutral },
+                    { backgroundColor: colors.sentimentNeutral },
                   ]}
                 >
                   中性 {report.sentimentData.percentage.neutral.toFixed(0)}%
@@ -137,7 +272,7 @@ export default function DiaryReportScreen() {
                 <Chip
                   style={[
                     styles.sentimentChip,
-                    { backgroundColor: COLORS.sentimentNegative },
+                    { backgroundColor: colors.sentimentNegative },
                   ]}
                 >
                   消极 {report.sentimentData.percentage.negative.toFixed(0)}%
@@ -224,121 +359,3 @@ export default function DiaryReportScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  loading: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.background,
-  },
-  header: {
-    padding: 20,
-    paddingTop: 48,
-    backgroundColor: COLORS.primary,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: COLORS.textOnPrimary,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: COLORS.textOnPrimary,
-    opacity: 0.8,
-    marginTop: 4,
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  card: {
-    marginBottom: 16,
-    backgroundColor: COLORS.surface,
-  },
-  text: {
-    color: COLORS.textPrimary,
-    lineHeight: 24,
-  },
-  sentimentRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginBottom: 12,
-  },
-  sentimentChip: {
-    marginRight: 8,
-  },
-  metaText: {
-    color: COLORS.textSecondary,
-    fontSize: 14,
-    marginTop: 8,
-  },
-  tagList: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  tagChip: {
-    marginRight: 8,
-    marginBottom: 8,
-    backgroundColor: COLORS.surfaceVariant,
-  },
-  findingItem: {
-    marginBottom: 12,
-    padding: 12,
-    backgroundColor: COLORS.surfaceVariant,
-    borderRadius: 8,
-  },
-  findingText: {
-    color: COLORS.textPrimary,
-    lineHeight: 20,
-  },
-  adviceItem: {
-    marginBottom: 16,
-    padding: 12,
-    backgroundColor: COLORS.surfaceVariant,
-    borderRadius: 8,
-  },
-  adviceText: {
-    color: COLORS.textPrimary,
-    lineHeight: 22,
-    marginBottom: 8,
-  },
-  adviceCategory: {
-    color: COLORS.primary,
-    fontSize: 12,
-  },
-  questionItem: {
-    marginBottom: 16,
-    padding: 12,
-    backgroundColor: COLORS.surfaceVariant,
-    borderRadius: 8,
-  },
-  questionText: {
-    color: COLORS.textPrimary,
-    fontWeight: "bold",
-    lineHeight: 22,
-    marginBottom: 8,
-  },
-  questionContext: {
-    color: COLORS.textSecondary,
-    fontSize: 14,
-  },
-  empty: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptyText: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-  },
-  bottomPadding: {
-    height: 32,
-  },
-});

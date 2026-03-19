@@ -3,296 +3,247 @@
  * 个人中心页面 - PRD v3.0
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import {
   View,
   StyleSheet,
   ScrollView,
   Alert,
   TouchableOpacity,
+  Pressable,
 } from "react-native";
-import { Text, Avatar, Card, Button, List, Divider } from "react-native-paper";
+import { Text, Avatar, Card, List, Divider } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuthStore } from "../../store/authStore";
 import { userService } from "../../services/userService";
-import { COLORS } from "../../constants/colors";
+import { useTheme } from "../../context/ThemeContext";
 import type { User } from "../../types/auth";
 import type { ProfileStackParamList } from "../../navigation/types";
+import { navigationRef, resetToAuth } from "../../navigation/navigationRef";
+
+const PRESET_AVATAR_COLORS: Record<string, string> = {
+  avatar_1: "#FF6B6B", avatar_2: "#4ECDC4", avatar_3: "#45B7D1",
+  avatar_4: "#96CEB4", avatar_5: "#FFEAA7", avatar_6: "#DDA0DD",
+  avatar_7: "#98D8C8", avatar_8: "#F7DC6F", avatar_9: "#BB8FCE",
+  avatar_10: "#85C1E9", avatar_11: "#F8B500", avatar_12: "#00CED1",
+};
+
+const PRESET_AVATAR_LABELS: Record<string, string> = {
+  avatar_1: "A1", avatar_2: "A2", avatar_3: "A3", avatar_4: "A4",
+  avatar_5: "A5", avatar_6: "A6", avatar_7: "A7", avatar_8: "A8",
+  avatar_9: "A9", avatar_10: "B1", avatar_11: "B2", avatar_12: "B3",
+};
 
 type NavigationProp = NativeStackNavigationProp<ProfileStackParamList>;
+
+const ROW_STYLE = { minHeight: 0, paddingVertical: 6 };
 
 export default function ProfileScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { user, logout, updateUser } = useAuthStore();
-  const [profileData, setProfileData] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
-      setLoading(true);
-      const data = await userService.getProfile();
-      setProfileData(data);
+      const data: User = await userService.getProfile();
       updateUser(data);
     } catch (error) {
       console.error("Failed to load profile:", error);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [updateUser]);
 
-  const handleThemePress = () => {
-    Alert.alert("选择主题", "请选择您喜欢的主题色系", [
-      {
-        text: "暖色",
-        onPress: () => updateTheme("warm"),
-      },
-      {
-        text: "冷色",
-        onPress: () => updateTheme("cool"),
-      },
-      {
-        text: "暗色",
-        onPress: () => updateTheme("dark"),
-      },
-      {
-        text: "取消",
-        style: "cancel",
-      },
-    ]);
-  };
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", loadProfile);
+    return unsubscribe;
+  }, [navigation, loadProfile]);
 
-  const updateTheme = async (theme: string) => {
-    try {
-      await userService.updateProfile({ theme: theme as any });
-      updateUser({ ...profileData!, theme: theme as any });
-      Alert.alert("成功", "主题已更新");
-    } catch (error) {
-      console.error("Failed to update theme:", error);
-      Alert.alert("错误", "主题更新失败");
-    }
-  };
-
-  const handleAboutPress = () => {
-    Alert.alert(
-      "关于 MyMe",
-      "MyMe v1.0.0\n\nAI驱动的数字分身应用\n\n让AI成为你的第二个自我",
-      [{ text: "确定" }],
-    );
-  };
-
-  const handleSecurityPress = () => {
-    navigation.navigate("Security");
-  };
-
-  const handleNotificationPress = () => {
-    navigation.navigate("NotificationSettings");
-  };
-
-  const handleDataPress = () => {
-    navigation.navigate("MyData");
-  };
-
-  const handleAvatarPress = () => {
-    navigation.navigate("UserAvatar");
-  };
-
-  const handleProfileEditPress = () => {
-    navigation.navigate("ProfileEdit");
+  const doLogout = () => {
+    logout();
+    // 如果 Zustand 响应式渲染 300ms 内没生效，主动 resetToAuth
+    const timer = setTimeout(() => {
+      if (navigationRef.isReady()) {
+        resetToAuth();
+      }
+    }, 300);
   };
 
   const handleLogout = () => {
-    Alert.alert("退出登录", "确定要退出登录吗？", [
-      {
-        text: "取消",
-        style: "cancel",
-      },
-      {
-        text: "确定",
-        onPress: () => logout(),
-      },
-    ]);
+    Alert.alert(
+      "退出登录",
+      "确定要退出登录吗？",
+      [
+        { text: "取消", style: "cancel" },
+        { text: "确定", style: "destructive", onPress: doLogout },
+      ],
+      { cancelable: true },
+    );
   };
 
-  const getThemeLabel = (theme?: string) => {
-    switch (theme) {
-      case "warm":
-        return "暖色";
-      case "cool":
-        return "冷色";
-      case "dark":
-        return "暗色";
-      default:
-        return "暖色";
-    }
-  };
+  const displayName =
+    user?.nickname || user?.name || user?.username || "用户";
+  const avatarId = user?.avatarId;
+  const avatarBg = avatarId && PRESET_AVATAR_COLORS[avatarId]
+    ? PRESET_AVATAR_COLORS[avatarId]
+    : colors.primary;
+  const avatarLabel = avatarId && PRESET_AVATAR_LABELS[avatarId]
+    ? PRESET_AVATAR_LABELS[avatarId]
+    : (displayName.substring(0, 2).toUpperCase() || "我");
 
-  const getAvatarLabel = (name?: string) => {
-    return name?.substring(0, 2).toUpperCase() || "U";
-  };
+  const mkItem = (title: string, icon: string, onPress: () => void) => (
+    <List.Item
+      title={title}
+      titleStyle={styles.itemTitle}
+      style={ROW_STYLE}
+      left={(props) => (
+        <List.Icon {...props} icon={icon} color={colors.primary} />
+      )}
+      right={(props) => (
+        <List.Icon {...props} icon="chevron-right" color={colors.textTertiary} />
+      )}
+      onPress={onPress}
+    />
+  );
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleAvatarPress}>
-          <Avatar.Text
-            size={80}
-            label={getAvatarLabel(profileData?.name || user?.name || undefined)}
-            style={styles.avatar}
-          />
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
+    >
+      {/* ─── 头部：头像 + 昵称 ─── */}
+      <View
+        style={[
+          styles.header,
+          { backgroundColor: colors.primary, paddingTop: insets.top + 20 },
+        ]}
+      >
+        <TouchableOpacity onPress={() => navigation.navigate("UserAvatar")}>
+          {user?.avatarUrl ? (
+            <Avatar.Image size={80} source={{ uri: user.avatarUrl }} />
+          ) : (
+            <Avatar.Text
+              size={80}
+              label={avatarLabel}
+              style={{ backgroundColor: avatarBg }}
+            />
+          )}
         </TouchableOpacity>
-        <Text style={styles.username}>
-          {profileData?.username || user?.name || "用户"}
+        <Text style={[styles.username, { color: colors.textOnPrimary }]}>
+          {displayName}
         </Text>
-        <Text style={styles.email}>
-          {profileData?.email || user?.email || ""}
-        </Text>
-        {(profileData?.nickname || user?.nickname) && (
-          <Text style={styles.nickname}>
-            {profileData?.nickname || user?.nickname || ""}
-          </Text>
-        )}
       </View>
 
-      <Card style={styles.card}>
+      {/* ─── 菜单列表 ─── */}
+      <Card style={[styles.card, { backgroundColor: colors.surface }]}>
         <Card.Content style={styles.cardContent}>
-          <List.Item
-            title="我的数据"
-            description="查看M1-M10全部数据统计"
-            left={(props) => <List.Icon {...props} icon="database" />}
-            right={(props) => <List.Icon {...props} icon="chevron-right" />}
-            onPress={handleDataPress}
-          />
+          {mkItem("我的数据", "database", () => navigation.navigate("MyData"))}
         </Card.Content>
       </Card>
 
-      <Card style={styles.card}>
+      <Card style={[styles.card, { backgroundColor: colors.surface }]}>
         <Card.Content style={styles.cardContent}>
-          <List.Item
-            title="头像"
-            description="更换头像"
-            left={(props) => <List.Icon {...props} icon="account-circle" />}
-            right={(props) => <List.Icon {...props} icon="chevron-right" />}
-            onPress={handleAvatarPress}
-          />
-          <Divider />
-          <List.Item
-            title="资料"
-            description="编辑昵称、简介等"
-            left={(props) => <List.Icon {...props} icon="account-edit" />}
-            right={(props) => <List.Icon {...props} icon="chevron-right" />}
-            onPress={handleProfileEditPress}
-          />
+          {mkItem("资料", "account-edit", () => navigation.navigate("ProfileEdit"))}
         </Card.Content>
       </Card>
 
-      <Card style={styles.card}>
+      <Card style={[styles.card, { backgroundColor: colors.surface }]}>
         <Card.Content style={styles.cardContent}>
-          <List.Item
-            title="外观"
-            description={`当前主题: ${getThemeLabel(profileData?.theme || user?.theme)}`}
-            left={(props) => <List.Icon {...props} icon="palette" />}
-            right={(props) => <List.Icon {...props} icon="chevron-right" />}
-            onPress={handleThemePress}
-          />
-          <Divider />
-          <List.Item
-            title="通知"
-            description="消息通知设置"
-            left={(props) => <List.Icon {...props} icon="bell" />}
-            right={(props) => <List.Icon {...props} icon="chevron-right" />}
-            onPress={handleNotificationPress}
-          />
-          <Divider />
-          <List.Item
-            title="安全"
-            description="账号与安全"
-            left={(props) => <List.Icon {...props} icon="shield-lock" />}
-            right={(props) => <List.Icon {...props} icon="chevron-right" />}
-            onPress={handleSecurityPress}
-          />
+          {mkItem("A2A关系", "account-group", () => navigation.navigate("A2AList"))}
         </Card.Content>
       </Card>
 
-      <Card style={styles.card}>
+      <Card style={[styles.card, { backgroundColor: colors.surface }]}>
         <Card.Content style={styles.cardContent}>
-          <List.Item
-            title="关于"
-            description="应用信息"
-            left={(props) => <List.Icon {...props} icon="information" />}
-            right={(props) => <List.Icon {...props} icon="chevron-right" />}
-            onPress={handleAboutPress}
-          />
+          {mkItem("主题", "palette", () => navigation.navigate("Theme"))}
         </Card.Content>
       </Card>
 
-      <Button
-        mode="contained"
+      <Card style={[styles.card, { backgroundColor: colors.surface }]}>
+        <Card.Content style={styles.cardContent}>
+          {mkItem("通知", "bell", () => navigation.navigate("NotificationSettings"))}
+        </Card.Content>
+      </Card>
+
+      <Card style={[styles.card, { backgroundColor: colors.surface }]}>
+        <Card.Content style={styles.cardContent}>
+          {mkItem("安全", "shield-lock", () => navigation.navigate("Security"))}
+        </Card.Content>
+      </Card>
+
+      <Card style={[styles.card, { backgroundColor: colors.surface }]}>
+        <Card.Content style={styles.cardContent}>
+          {mkItem("意见反馈", "message-text", () => navigation.navigate("Feedback"))}
+        </Card.Content>
+      </Card>
+
+      <Card style={[styles.card, { backgroundColor: colors.surface }]}>
+        <Card.Content style={styles.cardContent}>
+          {mkItem("关于", "information", () => navigation.navigate("About"))}
+        </Card.Content>
+      </Card>
+
+      {/* ─── 退出登录按钮（用 Pressable 重做，避免 TouchableOpacity 失效问题）─── */}
+      <Pressable
+        style={({ pressed }) => [
+          styles.logoutButton,
+          { backgroundColor: pressed ? "#c0392b" : colors.error },
+        ]}
         onPress={handleLogout}
-        style={styles.logoutButton}
-        buttonColor={COLORS.error}
+        android_ripple={{ color: "#c0392b" }}
       >
-        退出登录
-      </Button>
+        <Text style={styles.logoutText}>退出登录</Text>
+      </Pressable>
 
-      <Text style={styles.version}>MyMe v1.0.0</Text>
+      <Text style={[styles.version, { color: colors.textTertiary }]}>
+        MyMe v1.0.0
+      </Text>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
+  container: { flex: 1 },
   header: {
     alignItems: "center",
     padding: 32,
-    paddingTop: 64,
-    backgroundColor: COLORS.primary,
-  },
-  avatar: {
-    backgroundColor: COLORS.surface,
+    paddingTop: 32,
   },
   username: {
     fontSize: 20,
     fontWeight: "bold",
-    color: COLORS.textOnPrimary,
-    marginTop: 16,
-  },
-  email: {
-    fontSize: 14,
-    color: COLORS.textOnPrimary,
-    opacity: 0.8,
-    marginTop: 4,
-  },
-  nickname: {
-    fontSize: 14,
-    color: COLORS.textOnPrimary,
-    opacity: 0.8,
-    marginTop: 4,
+    marginTop: 12,
   },
   card: {
     marginHorizontal: 16,
-    marginTop: 16,
-    backgroundColor: COLORS.surface,
+    marginTop: 10,
   },
   cardContent: {
     padding: 0,
+    paddingHorizontal: 0,
+  },
+  itemTitle: {
+    fontSize: 15,
   },
   logoutButton: {
     marginHorizontal: 16,
     marginTop: 24,
     marginBottom: 16,
+    height: 48,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  logoutText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
   },
   version: {
     textAlign: "center",
-    color: COLORS.textTertiary,
     fontSize: 12,
-    paddingBottom: 32,
+    paddingBottom: 16,
   },
 });

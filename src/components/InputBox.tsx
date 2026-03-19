@@ -3,9 +3,16 @@
  * 消息输入框组件
  */
 
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet, Keyboard, ViewStyle } from 'react-native';
-import { COLORS } from '../constants/colors';
+import React, { useState, useMemo } from "react";
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Keyboard,
+  ViewStyle,
+} from "react-native";
+import { useTheme } from "../context/ThemeContext";
 
 interface InputBoxProps {
   /** 发送消息回调 */
@@ -28,13 +35,81 @@ interface InputBoxProps {
  */
 export const InputBox: React.FC<InputBoxProps> = ({
   onSend,
-  placeholder = '输入消息...',
+  placeholder = "输入消息...",
   disabled = false,
   maxLength = 2000,
   autoFocus = false,
   style,
 }) => {
-  const [text, setText] = useState('');
+  const { colors } = useTheme();
+  const [text, setText] = useState("");
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          backgroundColor: colors.surface,
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          borderTopWidth: 1,
+          borderTopColor: colors.divider,
+        },
+        inputContainer: {
+          flexDirection: "row",
+          alignItems: "flex-end",
+          backgroundColor: colors.surfaceVariant,
+          borderRadius: 24,
+          paddingHorizontal: 16,
+          paddingVertical: 10,
+          minHeight: 48,
+          maxHeight: 120,
+        },
+        input: {
+          flex: 1,
+          fontSize: 16,
+          color: colors.textPrimary,
+          maxHeight: 100,
+          paddingVertical: 0,
+        },
+        counterContainer: {
+          marginLeft: 12,
+          justifyContent: "flex-end",
+        },
+        sendButton: {
+          width: 36,
+          height: 36,
+          borderRadius: 18,
+          backgroundColor: colors.border,
+          justifyContent: "center",
+          alignItems: "center",
+        },
+        sendButtonActive: {
+          backgroundColor: colors.primary,
+        },
+        sendButtonDisabled: {
+          opacity: 0.5,
+        },
+        sendIcon: {
+          width: 16,
+          height: 16,
+          justifyContent: "center",
+          alignItems: "center",
+        },
+        sendIconActive: {},
+        arrow: {
+          width: 0,
+          height: 0,
+          borderLeftWidth: 8,
+          borderTopWidth: 5,
+          borderBottomWidth: 5,
+          borderLeftColor: colors.textTertiary,
+          borderTopColor: "transparent",
+          borderBottomColor: "transparent",
+          marginLeft: 2,
+        },
+      }),
+    [colors],
+  );
 
   // 检查是否可以发送
   const canSend = text.trim().length > 0 && !disabled;
@@ -43,7 +118,7 @@ export const InputBox: React.FC<InputBoxProps> = ({
   const handleSend = () => {
     if (canSend) {
       onSend?.(text.trim());
-      setText('');
+      setText("");
       Keyboard.dismiss();
     }
   };
@@ -63,7 +138,7 @@ export const InputBox: React.FC<InputBoxProps> = ({
           value={text}
           onChangeText={handleChangeText}
           placeholder={placeholder}
-          placeholderTextColor={COLORS.textTertiary}
+          placeholderTextColor={colors.textTertiary}
           multiline
           maxLength={maxLength}
           editable={!disabled}
@@ -72,7 +147,7 @@ export const InputBox: React.FC<InputBoxProps> = ({
           returnKeyType="send"
           onSubmitEditing={handleSend}
         />
-        
+
         {/* 字符计数 */}
         <View style={styles.counterContainer}>
           <TouchableOpacity
@@ -85,10 +160,7 @@ export const InputBox: React.FC<InputBoxProps> = ({
             disabled={!canSend}
             activeOpacity={0.7}
           >
-            <View style={[
-              styles.sendIcon,
-              canSend && styles.sendIconActive,
-            ]}>
+            <View style={[styles.sendIcon, canSend && styles.sendIconActive]}>
               <View style={styles.arrow} />
             </View>
           </TouchableOpacity>
@@ -97,70 +169,5 @@ export const InputBox: React.FC<InputBoxProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: COLORS.surface,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.divider,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    backgroundColor: COLORS.surfaceVariant,
-    borderRadius: 24,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    minHeight: 48,
-    maxHeight: 120,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: COLORS.textPrimary,
-    maxHeight: 100,
-    paddingVertical: 0,
-  },
-  counterContainer: {
-    marginLeft: 12,
-    justifyContent: 'flex-end',
-  },
-  sendButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.border,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sendButtonActive: {
-    backgroundColor: COLORS.primary,
-  },
-  sendButtonDisabled: {
-    opacity: 0.5,
-  },
-  sendIcon: {
-    width: 16,
-    height: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sendIconActive: {
-    // 白色箭头
-  },
-  arrow: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 8,
-    borderTopWidth: 5,
-    borderBottomWidth: 5,
-    borderLeftColor: COLORS.textTertiary,
-    borderTopColor: 'transparent',
-    borderBottomColor: 'transparent',
-    marginLeft: 2,
-  },
-});
 
 export default InputBox;

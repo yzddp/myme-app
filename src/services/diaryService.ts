@@ -78,12 +78,21 @@ export const diaryService = {
   /**
    * 创建日记
    * @param content 日记内容
+   * @param date 日记日期 (可选，格式: YYYY-MM-DD)
    * @returns 创建的日记
    */
-  async create(content: string): Promise<DiaryEntry> {
+  async create(content: string, date?: string): Promise<DiaryEntry> {
     // 加密日记内容
     const encryptedContent = encryptDiaryContent(content);
-    const request: CreateDiaryRequest = { content: encryptedContent };
+    const request: CreateDiaryRequest = {
+      content: encryptedContent,
+      type: "create",
+    };
+
+    // 如果提供了日期，添加到请求中
+    if (date) {
+      request.diaryDate = date;
+    }
 
     const diary = await apiService.post<DiaryEntry>(
       DIARY_ENDPOINTS.base,
@@ -104,16 +113,17 @@ export const diaryService = {
    * @returns 更新后的日记
    */
   async update(id: string, data: UpdateDiaryRequest): Promise<DiaryEntry> {
-    const updateData = { ...data };
+    // 加密日记内容
+    const encryptedContent = encryptDiaryContent(data.content || "");
+    const request: CreateDiaryRequest = {
+      content: encryptedContent,
+      type: "update",
+      diaryId: id,
+    };
 
-    // 如果更新内容，加密
-    if (updateData.content) {
-      updateData.content = encryptDiaryContent(updateData.content);
-    }
-
-    const diary = await apiService.put<DiaryEntry>(
-      `${DIARY_ENDPOINTS.base}/${id}`,
-      updateData,
+    const diary = await apiService.post<DiaryEntry>(
+      DIARY_ENDPOINTS.base,
+      request,
     );
 
     // 返回解密后的内容

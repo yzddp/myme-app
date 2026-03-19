@@ -1,17 +1,24 @@
 /**
  * MyMe App - Notification Settings Screen
- * 通知设置页面
+ * 通知设置页面 - PRD v3.0
  */
 
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, ScrollView, Alert } from "react-native";
-import { Text, Card, Switch, ActivityIndicator } from "react-native-paper";
+import {
+  Text,
+  Card,
+  Switch,
+  ActivityIndicator,
+  IconButton,
+} from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import { userService, NotificationSettings } from "../../services/userService";
-import { COLORS } from "../../constants/colors";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function NotificationSettingsScreen() {
   const navigation = useNavigation();
+  const { colors } = useTheme();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<NotificationSettings>({
@@ -53,93 +60,92 @@ export default function NotificationSettingsScreen() {
     }
   };
 
-  const SettingItem = ({
-    title,
-    description,
-    value,
-    onToggle,
-  }: {
-    title: string;
-    description: string;
-    value: boolean;
-    onToggle: () => void;
-  }) => (
-    <View style={styles.settingItem}>
-      <View style={styles.settingText}>
-        <Text style={styles.settingTitle}>{title}</Text>
-        <Text style={styles.settingDescription}>{description}</Text>
-      </View>
-      <Switch
-        value={value}
-        onValueChange={onToggle}
-        disabled={saving}
-        color={COLORS.primary}
-      />
-    </View>
-  );
-
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+      <View
+        style={[
+          styles.loadingContainer,
+          { backgroundColor: colors.background },
+        ]}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>通知设置</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
+        <IconButton
+          icon="arrow-left"
+          iconColor={colors.textOnPrimary}
+          size={24}
+          onPress={() => navigation.goBack()}
+        />
+        <Text style={[styles.title, { color: colors.textOnPrimary }]}>
+          通知设置
+        </Text>
+        <View style={{ width: 48 }} />
       </View>
 
       <ScrollView style={styles.content}>
-        <Text style={styles.sectionTitle}>推送通知</Text>
-        <Card style={styles.card}>
-          <View style={styles.cardContent}>
-            <SettingItem
-              title="日记提醒"
-              description="每天提醒写日记"
-              value={settings.diaryReminder}
-              onToggle={() => handleToggle("diaryReminder")}
-            />
-          </View>
+        <Card style={[styles.card, { backgroundColor: colors.surface }]}>
+          <Card.Content>
+            <View style={styles.settingItem}>
+              <View style={styles.settingText}>
+                <Text
+                  style={[styles.settingTitle, { color: colors.textPrimary }]}
+                >
+                  日记提醒
+                </Text>
+                <Text
+                  style={[
+                    styles.settingDescription,
+                    { color: colors.textSecondary },
+                  ]}
+                >
+                  每天提醒写日记
+                </Text>
+              </View>
+              <Switch
+                value={settings.diaryReminder}
+                onValueChange={() => handleToggle("diaryReminder")}
+                disabled={saving}
+                color={colors.primary}
+              />
+            </View>
+          </Card.Content>
         </Card>
 
-        <Card style={styles.card}>
-          <View style={styles.cardContent}>
-            <SettingItem
-              title="AI洞察"
-              description="接收AI分析和建议"
-              value={settings.aiInsight}
-              onToggle={() => handleToggle("aiInsight")}
-            />
-          </View>
+        <Card style={[styles.card, { backgroundColor: colors.surface }]}>
+          <Card.Content>
+            <View style={styles.settingItem}>
+              <View style={styles.settingText}>
+                <Text
+                  style={[styles.settingTitle, { color: colors.textPrimary }]}
+                >
+                  邮件通知
+                </Text>
+                <Text
+                  style={[
+                    styles.settingDescription,
+                    { color: colors.textSecondary },
+                  ]}
+                >
+                  通过邮件接收重要通知
+                </Text>
+              </View>
+              <Switch
+                value={settings.email}
+                onValueChange={() => handleToggle("email")}
+                disabled={saving}
+                color={colors.primary}
+              />
+            </View>
+          </Card.Content>
         </Card>
 
-        <Card style={styles.card}>
-          <View style={styles.cardContent}>
-            <SettingItem
-              title="营销推送"
-              description="接收新功能和优惠信息"
-              value={settings.marketing}
-              onToggle={() => handleToggle("marketing")}
-            />
-          </View>
-        </Card>
-
-        <Text style={styles.sectionTitle}>邮件通知</Text>
-        <Card style={styles.card}>
-          <View style={styles.cardContent}>
-            <SettingItem
-              title="邮件通知"
-              description="通过邮件接收重要通知"
-              value={settings.email}
-              onToggle={() => handleToggle("email")}
-            />
-          </View>
-        </Card>
-
-        <Text style={styles.tip}>
+        <Text style={[styles.tip, { color: colors.textTertiary }]}>
           关闭所有通知后，您将不会收到任何推送和邮件提醒
         </Text>
       </ScrollView>
@@ -150,17 +156,16 @@ export default function NotificationSettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   header: {
-    padding: 20,
     paddingTop: 48,
-    backgroundColor: COLORS.primary,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    color: COLORS.textOnPrimary,
   },
   content: {
     flex: 1,
@@ -170,27 +175,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: COLORS.background,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: COLORS.textSecondary,
-    marginBottom: 8,
-    marginTop: 16,
-    paddingHorizontal: 4,
   },
   card: {
-    backgroundColor: COLORS.surface,
-  },
-  cardContent: {
-    padding: 0,
+    marginBottom: 12,
   },
   settingItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: 16,
   },
   settingText: {
     flex: 1,
@@ -198,17 +190,14 @@ const styles = StyleSheet.create({
   },
   settingTitle: {
     fontSize: 16,
-    color: COLORS.textPrimary,
     fontWeight: "500",
   },
   settingDescription: {
     fontSize: 14,
-    color: COLORS.textSecondary,
     marginTop: 4,
   },
   tip: {
     fontSize: 12,
-    color: COLORS.textTertiary,
     textAlign: "center",
     marginTop: 24,
     marginBottom: 32,

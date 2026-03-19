@@ -11,17 +11,18 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
-import { Text, TextInput, Button } from "react-native-paper";
+import { Text, TextInput, Button, IconButton } from "react-native-paper";
 import { useAuthStore } from "../../store/authStore";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "../../navigation/types";
-import { THEMES } from "../../constants/colors";
 import { authService } from "../../services/authService";
-
-const COLORS = THEMES.cool;
+import { useTheme } from "../../context/ThemeContext";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function RegisterScreen() {
+  const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const navigation =
     useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { login } = useAuthStore();
@@ -69,11 +70,73 @@ export default function RegisterScreen() {
     }
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: "center",
+      padding: 24,
+    },
+    header: {
+      alignItems: "center",
+      marginBottom: 32,
+    },
+    title: {
+      fontSize: 32,
+      fontWeight: "bold",
+      color: colors.primary,
+    },
+    subtitle: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      marginTop: 8,
+    },
+    form: {
+      width: "100%",
+    },
+    input: {
+      marginBottom: 16,
+    },
+    errorText: {
+      color: colors.error,
+      fontSize: 14,
+      marginBottom: 16,
+      textAlign: "center",
+    },
+    button: {
+      marginTop: 8,
+      borderRadius: 8,
+    },
+    buttonContent: {
+      paddingVertical: 8,
+    },
+    loginContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: 24,
+    },
+    loginText: {
+      color: colors.textSecondary,
+    },
+  });
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
+      <View style={{ paddingTop: insets.top, backgroundColor: colors.primary }}>
+        <IconButton
+          icon="arrow-left"
+          iconColor={colors.textOnPrimary}
+          size={24}
+          onPress={() => navigation.goBack()}
+        />
+      </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text style={styles.title}>创建账号</Text>
@@ -150,57 +213,3 @@ export default function RegisterScreen() {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: "center",
-    padding: 24,
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: 32,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: COLORS.primary,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    marginTop: 8,
-  },
-  form: {
-    width: "100%",
-  },
-  input: {
-    marginBottom: 16,
-  },
-  errorText: {
-    color: COLORS.error,
-    fontSize: 14,
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  button: {
-    marginTop: 8,
-    borderRadius: 8,
-  },
-  buttonContent: {
-    paddingVertical: 8,
-  },
-  loginContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 24,
-  },
-  loginText: {
-    color: COLORS.textSecondary,
-  },
-});

@@ -37,6 +37,7 @@ export interface Message {
 export interface CreateSessionRequest {
   type?: SessionType;
   title?: string;
+  agentType?: string;  // 指定系统Agent类型，如 "me_agent"
 }
 
 // 发送消息请求
@@ -47,10 +48,15 @@ export interface SendMessageRequest {
 
 // 发送消息响应
 export interface SendMessageResponse {
-  session: Session;
-  message: Message;
-  reply: Message;
+  sessionId: string;
+  agentReply: string;
+  tokensUsed: number;
   suggestedTopics?: string[];
+  extractedData?: Array<{
+    module: string;
+    content: string;
+    confidence: number;
+  }>;
 }
 
 // 会话列表响应

@@ -12,6 +12,7 @@ import {
   THEMES,
 } from "../constants/colors";
 import { useAuthStore } from "../store/authStore";
+import { storage } from "../utils/storage";
 
 interface ThemeContextType {
   themeMode: ThemeMode;
@@ -28,16 +29,22 @@ interface ThemeProviderProps {
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const { user, updateUser } = useAuthStore();
-  const [themeMode, setThemeModeState] = useState<ThemeMode>("warm");
+  // 从 storage 读取保存的主题，如果没有则使用默认值
+  const [themeMode, setThemeModeState] = useState<ThemeMode>(
+    (storage.getString("theme") as ThemeMode) || "cool",
+  );
 
+  // 监听用户主题变化，同步到本地
   useEffect(() => {
-    if (user?.theme) {
+    if (user?.theme && user.theme !== themeMode) {
       setThemeModeState(user.theme as ThemeMode);
+      storage.set("theme", user.theme);
     }
   }, [user?.theme]);
 
   const setThemeMode = (mode: ThemeMode) => {
     setThemeModeState(mode);
+    storage.set("theme", mode);
     if (updateUser && user) {
       updateUser({ theme: mode });
     }

@@ -4,14 +4,21 @@
  */
 
 // 日记情感类型
-export type DiarySentiment = 'positive' | 'neutral' | 'negative';
+export type DiarySentiment = "positive" | "neutral" | "negative";
 
 // 分析周期类型
-export type DiaryPeriodType = 'daily' | 'weekly' | 'monthly' | 'custom';
+export type DiaryPeriodType = "daily" | "weekly" | "monthly" | "custom";
 
 // 通知日期类型
-export type NotificationDay = 
-  | 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun' | 'all';
+export type NotificationDay =
+  | "mon"
+  | "tue"
+  | "wed"
+  | "thu"
+  | "fri"
+  | "sat"
+  | "sun"
+  | "all";
 
 // 日记实体
 export interface DiaryEntry {
@@ -28,6 +35,9 @@ export interface DiaryEntry {
 // 创建日记请求
 export interface CreateDiaryRequest {
   content: string;
+  diaryDate?: string; // 可选的日记日期 (格式: YYYY-MM-DD)
+  type?: "create" | "update"; // 操作类型
+  diaryId?: string; // 日记ID (update时必填)
 }
 
 // 更新日记请求

@@ -12,6 +12,7 @@ export interface User {
   name: string | null;
   bio: string | null;
   avatarId: string | null;
+  avatarUrl: string | null;
   theme: "warm" | "cool" | "dark";
   locale: string;
   failedLoginAttempts?: number;

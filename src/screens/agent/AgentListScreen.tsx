@@ -3,7 +3,7 @@
  * AI对话列表页面
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { View, StyleSheet, FlatList } from "react-native";
 import {
   Text,
@@ -16,7 +16,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AgentStackParamList } from "../../navigation/types";
-import { COLORS } from "../../constants/colors";
+import { useTheme } from "../../context/ThemeContext";
 import { chatService } from "../../services/chatService";
 
 interface Session {
@@ -28,6 +28,7 @@ interface Session {
 }
 
 export default function AgentListScreen() {
+  const { colors } = useTheme();
   const navigation =
     useNavigation<NativeStackNavigationProp<AgentStackParamList>>();
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -57,6 +58,84 @@ export default function AgentListScreen() {
     }
   };
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.background,
+        },
+        header: {
+          padding: 20,
+          paddingTop: 48,
+          backgroundColor: colors.primary,
+        },
+        title: {
+          fontSize: 28,
+          fontWeight: "bold",
+          color: colors.textOnPrimary,
+          marginBottom: 12,
+        },
+        searchContainer: {
+          flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: colors.surface,
+          borderRadius: 8,
+        },
+        searchbar: {
+          backgroundColor: colors.surface,
+        },
+        list: {
+          padding: 16,
+        },
+        card: {
+          marginBottom: 12,
+          backgroundColor: colors.surface,
+        },
+        avatar: {
+          width: 40,
+          height: 40,
+          borderRadius: 20,
+          backgroundColor: colors.primary,
+          color: colors.textOnPrimary,
+          textAlign: "center",
+          lineHeight: 40,
+          fontWeight: "bold",
+        },
+        lastMessage: {
+          color: colors.textSecondary,
+          marginTop: 8,
+        },
+        empty: {
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          paddingTop: 60,
+        },
+        emptyText: {
+          fontSize: 18,
+          color: colors.textSecondary,
+        },
+        emptySubtext: {
+          fontSize: 14,
+          color: colors.textTertiary,
+          marginTop: 8,
+        },
+        fab: {
+          position: "absolute",
+          right: 16,
+          bottom: 16,
+          backgroundColor: colors.primary,
+        },
+        loading: {
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        },
+      }),
+    [colors],
+  );
+
   const renderItem = ({ item }: { item: Session }) => (
     <Card
       style={styles.card}
@@ -82,7 +161,7 @@ export default function AgentListScreen() {
         <View style={styles.searchContainer}>
           <IconButton
             icon="magnify"
-            iconColor={COLORS.textTertiary}
+            iconColor={colors.textTertiary}
             size={20}
           />
           <Searchbar
@@ -96,7 +175,7 @@ export default function AgentListScreen() {
 
       {loading ? (
         <View style={styles.loading}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
         <FlatList
@@ -121,77 +200,3 @@ export default function AgentListScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  header: {
-    padding: 20,
-    paddingTop: 48,
-    backgroundColor: COLORS.primary,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: COLORS.textOnPrimary,
-    marginBottom: 12,
-  },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.surface,
-    borderRadius: 8,
-  },
-  searchbar: {
-    backgroundColor: COLORS.surface,
-  },
-  list: {
-    padding: 16,
-  },
-  card: {
-    marginBottom: 12,
-    backgroundColor: COLORS.surface,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.primary,
-    color: COLORS.textOnPrimary,
-    textAlign: "center",
-    lineHeight: 40,
-    fontWeight: "bold",
-  },
-  lastMessage: {
-    color: COLORS.textSecondary,
-    marginTop: 8,
-  },
-  empty: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingTop: 60,
-  },
-  emptyText: {
-    fontSize: 18,
-    color: COLORS.textSecondary,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: COLORS.textTertiary,
-    marginTop: 8,
-  },
-  fab: {
-    position: "absolute",
-    right: 16,
-    bottom: 16,
-    backgroundColor: COLORS.primary,
-  },
-  loading: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});

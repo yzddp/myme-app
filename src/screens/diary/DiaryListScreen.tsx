@@ -3,20 +3,20 @@
  * 日记列表页面 - 支持日记/周报/月报/年报切换
  */
 
-import React, { useEffect, useState, useCallback } from "react";
-import { View, StyleSheet, FlatList, RefreshControl } from "react-native";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { View, StyleSheet, FlatList, RefreshControl, Alert, TouchableOpacity } from "react-native";
 import {
   Text,
   Card,
-  FAB,
-  Chip,
+  IconButton,
   ActivityIndicator,
   SegmentedButtons,
 } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { DiaryStackParamList } from "../../navigation/types";
-import { COLORS } from "../../constants/colors";
+import { useTheme } from "../../context/ThemeContext";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { diaryService } from "../../services/diaryService";
 import type { DiaryEntry, DiaryAnalysisReport } from "../../types/diary";
 
@@ -27,28 +27,6 @@ type DiaryItem = DiaryEntry;
 type ReportItem = DiaryAnalysisReport;
 
 type ListItem = DiaryItem | ReportItem;
-
-const getSentimentColor = (sentiment: string | null | undefined) => {
-  switch (sentiment) {
-    case "positive":
-      return COLORS.sentimentPositive;
-    case "negative":
-      return COLORS.sentimentNegative;
-    default:
-      return COLORS.sentimentNeutral;
-  }
-};
-
-const getSentimentLabel = (sentiment: string | null | undefined) => {
-  switch (sentiment) {
-    case "positive":
-      return "积极";
-    case "negative":
-      return "消极";
-    default:
-      return "中性";
-  }
-};
 
 const formatDateRange = (
   startDate: string,
@@ -70,6 +48,8 @@ const formatDateRange = (
 };
 
 export default function DiaryListScreen() {
+  const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const navigation =
     useNavigation<NativeStackNavigationProp<DiaryStackParamList>>();
   const [activeTab, setActiveTab] = useState<TabType>("diary");
@@ -77,6 +57,7 @@ export default function DiaryListScreen() {
   const [reports, setReports] = useState<ReportItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [fabLoading, setFabLoading] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -95,89 +76,136 @@ export default function DiaryListScreen() {
           updatedAt: d.updatedAt,
         }));
         setDiaries(mappedDiaries);
-      } else if (activeTab === "weekly") {
-        const response = await diaryService.getWeeklyReports({
-          page: 1,
-          limit: 50,
-        });
-        setReports(response.reports);
-      } else if (activeTab === "monthly") {
-        const response = await diaryService.getMonthlyReports({
-          page: 1,
-          limit: 50,
-        });
-        setReports(response.reports);
-      } else if (activeTab === "yearly") {
-        const response = await diaryService.getYearlyReports({
-          page: 1,
-          limit: 50,
-        });
-        setReports(response.reports);
+      } else {
+        let response;
+        if (activeTab === "weekly") {
+          response = await diaryService.getWeeklyReports({
+            page: 1,
+            limit: 50,
+          });
+        } else if (activeTab === "monthly") {
+          response = await diaryService.getMonthlyReports({
+            page: 1,
+            limit: 50,
+          });
+        } else {
+          response = await diaryService.getYearlyReports({
+            page: 1,
+            limit: 50,
+          });
+        }
+        const mappedReports: DiaryAnalysisReport[] = response.reports.map(
+          (r: any) => ({
+            id: r.id,
+            userId: r.userId,
+            periodType: r.periodType,
+            startDate: r.startDate,
+            endDate: r.endDate,
+            diaryCount: r.diaryCount || 0,
+            totalWords: r.totalWords || 0,
+            sentimentData: r.sentimentData,
+            themes: r.themes || [],
+            positiveFindings: r.positiveFindings || [],
+            negativeFindings: r.negativeFindings || [],
+            lifeAdvice: r.lifeAdvice || [],
+            questions: r.questions || [],
+            summary: r.summary,
+            createdAt: r.createdAt,
+          }),
+        );
+        setReports(mappedReports);
       }
     } catch (error) {
-      console.error("Failed to load data:", error);
+      console.error("Failed to load diary data:", error);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   }, [activeTab]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    const unsubscribe = navigation.addListener("focus", () => {
+      loadData();
+    });
+    return unsubscribe;
+  }, [navigation, loadData]);
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    loadData();
-  }, [loadData]);
-
-  const renderDiaryItem = ({ item }: { item: DiaryItem }) => {
-    const date = new Date(item.createdAt);
-    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-
-    return (
-      <Card
-        style={styles.card}
-        onPress={() => navigation.navigate("DiaryEdit", { id: item.id })}
-      >
-        <Card.Title
-          title={dateStr}
-          subtitle={item.summary || "暂无摘要"}
-          right={(props) =>
-            item.sentiment && (
-              <Chip
-                style={[
-                  styles.sentimentChip,
-                  { backgroundColor: getSentimentColor(item.sentiment) },
-                ]}
-                textStyle={styles.sentimentText}
-              >
-                {getSentimentLabel(item.sentiment)}
-              </Chip>
-            )
-          }
-        />
-        <Card.Content>
-          <Text numberOfLines={3} style={styles.content}>
-            {item.content}
-          </Text>
-          {item.keywords && item.keywords.length > 0 && (
-            <View style={styles.keywordList}>
-              {item.keywords.slice(0, 5).map((keyword, index) => (
-                <Chip
-                  key={index}
-                  style={styles.keywordChip}
-                  textStyle={styles.keywordText}
-                >
-                  {keyword}
-                </Chip>
-              ))}
-            </View>
-          )}
-        </Card.Content>
-      </Card>
-    );
+    await loadData();
+    setRefreshing(false);
   };
+
+  const getNearestAvailableDate = (): string => {
+    const today = new Date();
+    const createdDates = diaries.map(
+      (d) => new Date(d.createdAt).toISOString().split("T")[0],
+    );
+
+    // 从今天往前找，找到第一个没有创建日记的日期
+    for (let i = 0; i < 30; i++) {
+      const checkDate = new Date(today);
+      checkDate.setDate(today.getDate() - i);
+      const dateStr = checkDate.toISOString().split("T")[0];
+
+      if (!createdDates.includes(dateStr)) {
+        return dateStr;
+      }
+    }
+
+    // 如果30天内都有日记，返回今天
+    return today.toISOString().split("T")[0];
+  };
+
+  const handleDeleteDiary = (id: string) => {
+    Alert.alert("删除日记", "确定要永久删除这篇日记吗？", [
+      { text: "取消", style: "cancel" },
+      {
+        text: "删除",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await diaryService.delete(id);
+            setDiaries((prev) => prev.filter((d) => d.id !== id));
+          } catch (error) {
+            Alert.alert("错误", "删除失败，请重试");
+          }
+        },
+      },
+    ]);
+  };
+
+  const renderDiaryItem = ({ item }: { item: DiaryItem }) => (
+    <TouchableOpacity
+      style={[styles.card, { backgroundColor: colors.surface }]}
+      activeOpacity={0.8}
+      onPress={() => navigation.navigate("DiaryEdit", { id: item.id })}
+    >
+      <View style={styles.cardContent}>
+        <View style={styles.row}>
+          <Text style={[styles.date, { color: colors.textTertiary }]}>
+            {new Date(item.createdAt).toLocaleDateString("zh-CN")}
+          </Text>
+          <TouchableOpacity
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            onPress={() => handleDeleteDiary(item.id)}
+          >
+            <IconButton
+              icon="delete-outline"
+              size={18}
+              iconColor={colors.error}
+              style={{ margin: 0 }}
+            />
+          </TouchableOpacity>
+        </View>
+        <Text
+          numberOfLines={3}
+          style={[styles.content, { color: colors.textPrimary }]}
+        >
+          {item.content}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
 
   const renderReportItem = ({ item }: { item: ReportItem }) => {
     const dateRange = formatDateRange(
@@ -185,57 +213,30 @@ export default function DiaryListScreen() {
       item.endDate,
       item.periodType,
     );
-    const sentimentText = item.sentimentData
-      ? `日记${item.diaryCount}篇`
-      : "暂无数据";
 
     return (
       <Card
-        style={styles.card}
+        style={[styles.card, { backgroundColor: colors.surface }]}
         onPress={() =>
           navigation.navigate("DiaryReport", {
             reportId: item.id,
-            periodType: item.periodType,
+            periodType: item.periodType as "weekly" | "monthly" | "yearly",
           })
         }
       >
-        <Card.Title
-          title={dateRange}
-          subtitle={sentimentText}
-          right={(props) =>
-            item.sentimentData && (
-              <View style={styles.sentimentRow}>
-                <Chip
-                  style={[
-                    styles.sentimentChip,
-                    { backgroundColor: COLORS.sentimentPositive },
-                  ]}
-                  textStyle={styles.sentimentText}
-                >
-                  {item.sentimentData.percentage.positive.toFixed(0)}%
-                </Chip>
-              </View>
-            )
-          }
-        />
         <Card.Content>
+          <View style={styles.row}>
+            <Text style={[styles.date, { color: colors.textTertiary }]}>
+              {dateRange}
+            </Text>
+          </View>
           {item.summary && (
-            <Text numberOfLines={3} style={styles.content}>
+            <Text
+              numberOfLines={3}
+              style={[styles.content, { color: colors.textPrimary }]}
+            >
               {item.summary}
             </Text>
-          )}
-          {item.themes && item.themes.length > 0 && (
-            <View style={styles.keywordList}>
-              {item.themes.slice(0, 5).map((theme, index) => (
-                <Chip
-                  key={index}
-                  style={styles.keywordChip}
-                  textStyle={styles.keywordText}
-                >
-                  {theme}
-                </Chip>
-              ))}
-            </View>
           )}
         </Card.Content>
       </Card>
@@ -252,8 +253,10 @@ export default function DiaryListScreen() {
 
     return (
       <View style={styles.empty}>
-        <Text style={styles.emptyText}>{emptyTexts[activeTab].title}</Text>
-        <Text style={styles.emptySubtext}>
+        <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+          {emptyTexts[activeTab].title}
+        </Text>
+        <Text style={[styles.emptySubtext, { color: colors.textTertiary }]}>
           {emptyTexts[activeTab].subtitle}
         </Text>
       </View>
@@ -264,7 +267,7 @@ export default function DiaryListScreen() {
     if (loading && !refreshing) {
       return (
         <View style={styles.loading}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       );
     }
@@ -281,22 +284,122 @@ export default function DiaryListScreen() {
         }
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        ListEmptyComponent={renderEmptyComponent()}
+        ListEmptyComponent={renderEmptyComponent}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[COLORS.primary]}
+            colors={[colors.primary]}
           />
         }
       />
     );
   };
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.background,
+        },
+        header: {
+          padding: 20,
+          paddingTop: insets.top + 12,
+          paddingBottom: 0,
+          backgroundColor: colors.primary,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        },
+        title: {
+          fontSize: 28,
+          fontWeight: "bold",
+          color: colors.textOnPrimary,
+        },
+        tabContainer: {
+          padding: 16,
+          backgroundColor: colors.primary,
+          paddingBottom: 8,
+        },
+        segmentedButtons: {
+          backgroundColor: colors.surface,
+          borderRadius: 24,
+        },
+        list: {
+          padding: 16,
+          flexGrow: 1,
+        },
+        card: {
+          marginBottom: 16,
+          borderRadius: 12,
+          elevation: 1,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.05,
+          shadowRadius: 2,
+        },
+        cardContent: {
+          padding: 16,
+        },
+        row: {
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 8,
+        },
+        date: {
+          fontSize: 12,
+        },
+        content: {
+          lineHeight: 22,
+        },
+        empty: {
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          paddingTop: 60,
+        },
+        emptyText: {
+          fontSize: 18,
+        },
+        emptySubtext: {
+          fontSize: 14,
+          marginTop: 8,
+        },
+        loading: {
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        },
+      }),
+    [colors, insets],
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>日记</Text>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          {activeTab === "diary" && (
+            <IconButton
+              icon="plus"
+              iconColor={colors.textOnPrimary}
+              size={24}
+              disabled={fabLoading}
+              onPress={async () => {
+                setFabLoading(true);
+                try {
+                  navigation.navigate("DiaryEdit", {
+                    date: getNearestAvailableDate(),
+                  });
+                } finally {
+                  setFabLoading(false);
+                }
+              }}
+            />
+          )}
+        </View>
       </View>
 
       <View style={styles.tabContainer}>
@@ -314,101 +417,6 @@ export default function DiaryListScreen() {
       </View>
 
       {renderContent()}
-
-      {activeTab === "diary" && (
-        <FAB
-          icon="plus"
-          style={styles.fab}
-          onPress={() => navigation.navigate("DiaryEdit", {})}
-        />
-      )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  header: {
-    padding: 20,
-    paddingTop: 48,
-    backgroundColor: COLORS.primary,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: COLORS.textOnPrimary,
-  },
-  tabContainer: {
-    padding: 16,
-    backgroundColor: COLORS.primary,
-    paddingBottom: 8,
-  },
-  segmentedButtons: {
-    backgroundColor: COLORS.surface,
-  },
-  list: {
-    padding: 16,
-    flexGrow: 1,
-  },
-  card: {
-    marginBottom: 16,
-    backgroundColor: COLORS.surface,
-  },
-  sentimentChip: {
-    marginRight: 8,
-  },
-  sentimentText: {
-    color: COLORS.textOnPrimary,
-    fontSize: 12,
-  },
-  sentimentRow: {
-    flexDirection: "row",
-    marginRight: 8,
-  },
-  content: {
-    color: COLORS.textPrimary,
-    lineHeight: 22,
-  },
-  keywordList: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginTop: 12,
-  },
-  keywordChip: {
-    marginRight: 8,
-    marginBottom: 8,
-    backgroundColor: COLORS.surfaceVariant,
-  },
-  keywordText: {
-    fontSize: 12,
-  },
-  empty: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingTop: 60,
-  },
-  emptyText: {
-    fontSize: 18,
-    color: COLORS.textSecondary,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: COLORS.textTertiary,
-    marginTop: 8,
-  },
-  fab: {
-    position: "absolute",
-    right: 16,
-    bottom: 16,
-    backgroundColor: COLORS.primary,
-  },
-  loading: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});

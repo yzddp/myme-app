@@ -3,7 +3,7 @@
  * M1-M10模块选择器组件
  */
 
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
   ScrollView,
   ViewStyle,
 } from "react-native";
-import { COLORS } from "../constants/colors";
+import { useTheme } from "../context/ThemeContext";
 import type { KnowledgeModule } from "../types/knowledge";
 
 /** 模块信息 */
@@ -80,6 +80,83 @@ export const ModuleSelector: React.FC<ModuleSelectorProps> = ({
   selectedModules = [],
   style,
 }) => {
+  const { colors } = useTheme();
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flexGrow: 0,
+        },
+        scrollContent: {
+          paddingHorizontal: 16,
+          paddingVertical: 8,
+          gap: 8,
+        },
+        chip: {
+          paddingHorizontal: 14,
+          paddingVertical: 8,
+          borderRadius: 20,
+          backgroundColor: colors.surfaceVariant,
+          marginRight: 8,
+        },
+        chipText: {
+          fontSize: 14,
+          color: colors.textSecondary,
+          fontWeight: "500",
+        },
+        chipTextSelected: {
+          color: colors.textOnPrimary,
+        },
+        gridContainer: {
+          flexDirection: "row",
+          flexWrap: "wrap",
+          padding: 12,
+        },
+        gridItem: {
+          width: "48%",
+          flexDirection: "row",
+          alignItems: "center",
+          padding: 12,
+          marginBottom: 8,
+          marginRight: "2%",
+          borderRadius: 12,
+          backgroundColor: colors.surface,
+          borderWidth: 1,
+          borderColor: colors.border,
+        },
+        checkbox: {
+          width: 22,
+          height: 22,
+          borderRadius: 11,
+          borderWidth: 2,
+          borderColor: colors.border,
+          justifyContent: "center",
+          alignItems: "center",
+          marginRight: 10,
+        },
+        checkmark: {
+          color: colors.textOnPrimary,
+          fontSize: 14,
+          fontWeight: "bold",
+        },
+        gridItemContent: {
+          flex: 1,
+        },
+        gridItemTitle: {
+          fontSize: 14,
+          fontWeight: "600",
+          color: colors.textPrimary,
+          marginBottom: 2,
+        },
+        gridItemDesc: {
+          fontSize: 11,
+          color: colors.textTertiary,
+        },
+      }),
+    [colors],
+  );
+
   // 检查模块是否被选中
   const isSelected = (module: KnowledgeModule): boolean => {
     if (multiple) {
@@ -90,7 +167,7 @@ export const ModuleSelector: React.FC<ModuleSelectorProps> = ({
 
   // 获取模块颜色 - PRD v3.0: 统一使用primary颜色
   const getModuleColor = (module: KnowledgeModule): string => {
-    return COLORS.primary;
+    return colors.primary;
   };
 
   // 处理点击
@@ -172,76 +249,5 @@ export const ModuleSelector: React.FC<ModuleSelectorProps> = ({
 
 /** 导出模块列表供外部使用 */
 export const KNOWLEDGE_MODULES = MODULES;
-
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 0,
-  },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 8,
-  },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: COLORS.surfaceVariant,
-    marginRight: 8,
-  },
-  chipText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    fontWeight: "500",
-  },
-  chipTextSelected: {
-    color: COLORS.textOnPrimary,
-  },
-  gridContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    padding: 12,
-  },
-  gridItem: {
-    width: "48%",
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    marginBottom: 8,
-    marginRight: "2%",
-    borderRadius: 12,
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: COLORS.border,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 10,
-  },
-  checkmark: {
-    color: COLORS.textOnPrimary,
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  gridItemContent: {
-    flex: 1,
-  },
-  gridItemTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.textPrimary,
-    marginBottom: 2,
-  },
-  gridItemDesc: {
-    fontSize: 11,
-    color: COLORS.textTertiary,
-  },
-});
 
 export default ModuleSelector;

@@ -15,6 +15,7 @@ export interface User {
   name: string | null;
   bio: string | null;
   avatarId: string | null;
+  avatarUrl: string | null;
   theme: "warm" | "cool" | "dark";
   locale: string;
   createdAt: string;
@@ -82,7 +83,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   updateUser: (updates: Partial<User>) => {
     set((state) => ({
-      user: state.user ? { ...state.user, ...updates } : null,
+      user: state.user ? { ...state.user, ...updates } : (updates as User),
     }));
   },
 }));
