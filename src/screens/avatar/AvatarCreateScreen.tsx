@@ -5,13 +5,7 @@
 
 import React, { useState } from "react";
 import { View, StyleSheet, ScrollView, Alert } from "react-native";
-import {
-  Text,
-  TextInput,
-  Button,
-  Chip,
-  IconButton,
-} from "react-native-paper";
+import { Text, TextInput, Button, Chip, IconButton } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useTheme } from "../../context/ThemeContext";
@@ -81,18 +75,20 @@ export default function AvatarCreateScreen() {
           value={name}
           onChangeText={setName}
           mode="outlined"
-          style={styles(colors).input}
+          style={[styles(colors).input, { marginBottom: 4 }]}
         />
+        <Text style={styles(colors).hint}>该名称会作为使用方看到的名称</Text>
 
         <TextInput
-          label="描述"
+          label="备注"
           value={description}
           onChangeText={setDescription}
           mode="outlined"
           multiline
           numberOfLines={3}
-          style={styles(colors).input}
+          style={[styles(colors).input, { marginBottom: 4 }]}
         />
+        <Text style={styles(colors).hint}>此备注只做备忘，不展示给对方</Text>
 
         <Text style={styles(colors).label}>授权模块 (M1-M10)</Text>
         <Text style={styles(colors).hint}>选择分身可以访问的知识模块</Text>
