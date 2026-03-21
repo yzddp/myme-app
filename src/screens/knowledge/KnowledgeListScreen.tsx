@@ -15,7 +15,7 @@ import { Text, Card, Button, FAB, IconButton } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
 import { useKnowledgeStore } from "../../store/knowledgeStore";
-import { KnowledgeCard } from "../../components";
+import { KnowledgeCard, ModuleSelector } from "../../components";
 import { KNOWLEDGE_MODULES } from "../../components/ModuleSelector";
 import type { KnowledgeModule } from "../../types/knowledge";
 
@@ -105,6 +105,8 @@ export const KnowledgeListScreen: React.FC<KnowledgeListScreenProps> = ({
         />
         <Text style={styles(colors).title}>{getModuleTitle()}</Text>
       </View>
+
+      <ModuleSelector selected={currentModule} onSelect={handleModuleSelect} />
 
       <FlatList
         data={items}
