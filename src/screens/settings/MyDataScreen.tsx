@@ -18,6 +18,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { ProfileStackParamList } from "../../navigation/types";
 import { useTheme } from "../../context/ThemeContext";
 import { knowledgeService } from "../../services/knowledgeService";
+import type { KnowledgeModule } from "../../types/knowledge";
 
 const MODULES = [
   { id: "M1", name: "个人信息与背景", description: "身份锚点" },
@@ -62,13 +63,6 @@ export default function MyDataScreen() {
       fontWeight: "bold",
       color: colors.textOnPrimary,
       marginLeft: 48,
-    },
-    subtitle: {
-      fontSize: 14,
-      color: colors.textOnPrimary,
-      opacity: 0.8,
-      marginLeft: 48,
-      marginTop: 4,
     },
     loading: {
       flex: 1,
@@ -134,11 +128,6 @@ export default function MyDataScreen() {
       fontWeight: "600",
       color: colors.textPrimary,
     },
-    moduleDesc: {
-      fontSize: 12,
-      color: colors.textSecondary,
-      marginTop: 2,
-    },
     moduleRight: {
       flexDirection: "row",
       alignItems: "center",
@@ -199,7 +188,9 @@ export default function MyDataScreen() {
   };
 
   const handleModulePress = (moduleId: string) => {
-    navigation.navigate("KnowledgeList", { module: moduleId });
+    navigation.navigate("KnowledgeList", {
+      module: moduleId as KnowledgeModule,
+    });
   };
 
   const getCount = (moduleId: string) => {
@@ -230,13 +221,12 @@ export default function MyDataScreen() {
           onPress={() => navigation.goBack()}
         />
         <Text style={styles.title}>我的过去</Text>
-        <Text style={styles.subtitle}>M1-M10 知识库统计</Text>
       </View>
 
       <View style={styles.content}>
         <Card style={styles.totalCard}>
           <Card.Content style={styles.totalContent}>
-            <Text style={styles.totalLabel}>总知识条目</Text>
+            <Text style={styles.totalLabel}>总数据条目</Text>
             <Text style={styles.totalValue}>{total}</Text>
           </Card.Content>
         </Card>
@@ -251,7 +241,6 @@ export default function MyDataScreen() {
                   </View>
                   <View style={styles.moduleInfo}>
                     <Text style={styles.moduleName}>{m.name}</Text>
-                    <Text style={styles.moduleDesc}>{m.description}</Text>
                   </View>
                 </View>
                 <View style={styles.moduleRight}>

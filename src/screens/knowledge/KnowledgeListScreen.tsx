@@ -15,7 +15,8 @@ import { Text, Card, Button, FAB, IconButton } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
 import { useKnowledgeStore } from "../../store/knowledgeStore";
-import { KnowledgeCard, ModuleSelector } from "../../components";
+import { KnowledgeCard } from "../../components";
+import { KNOWLEDGE_MODULES } from "../../components/ModuleSelector";
 import type { KnowledgeModule } from "../../types/knowledge";
 
 interface KnowledgeListScreenProps {
@@ -83,23 +84,27 @@ export const KnowledgeListScreen: React.FC<KnowledgeListScreenProps> = ({
     await deleteItem(item.id);
   };
 
+  const getModuleTitle = () => {
+    if (!currentModule) return "知识库";
+    const moduleInfo = KNOWLEDGE_MODULES.find((m) => m.key === currentModule);
+    return moduleInfo ? `${moduleInfo.key}${moduleInfo.name}` : currentModule;
+  };
+
   return (
-    <SafeAreaView style={styles(colors).container}>
+    <SafeAreaView
+      style={styles(colors).container}
+      edges={["left", "right", "bottom"]}
+    >
       <View style={styles(colors).header}>
         <IconButton
           icon="arrow-left"
-          iconColor={colors.textPrimary}
+          iconColor={colors.textOnPrimary}
           size={24}
           onPress={() => navigation?.goBack?.()}
+          style={styles(colors).backButton}
         />
-        <View>
-          <Text style={styles(colors).title}>知识库</Text>
-          <Text style={styles(colors).subtitle}>M1-M10 分类管理</Text>
-        </View>
-        <View style={{ width: 48 }} />
+        <Text style={styles(colors).title}>{getModuleTitle()}</Text>
       </View>
-
-      <ModuleSelector selected={currentModule} onSelect={handleModuleSelect} />
 
       <FlatList
         data={items}
@@ -147,21 +152,20 @@ const styles = (colors: any) =>
       backgroundColor: colors.background,
     },
     header: {
-      padding: 20,
-      paddingBottom: 10,
+      backgroundColor: colors.primary,
+      paddingTop: 8,
+      paddingBottom: 16,
+      paddingHorizontal: 8,
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
+    },
+    backButton: {
+      marginRight: 8,
     },
     title: {
       fontSize: 24,
       fontWeight: "bold",
-      color: colors.textPrimary,
-    },
-    subtitle: {
-      fontSize: 14,
-      color: colors.textSecondary,
-      marginTop: 4,
+      color: colors.textOnPrimary,
     },
     list: {
       flex: 1,
