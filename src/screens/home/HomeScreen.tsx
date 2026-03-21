@@ -125,9 +125,14 @@ export default function HomeScreen() {
     setMenuVisible(true);
   };
 
-  const handleMyPastAgent = () => {
+  const handleMyPastAgent = async () => {
     setMenuVisible(false);
-    navigation.navigate("Chat", { type: "agent_self" });
+    try {
+      const session = await chatService.createSession("agent" as any, "我的过去", "me_agent");
+      navigation.navigate("Chat", { sessionId: (session as any)?.id, type: "agent_self" });
+    } catch (error) {
+      Alert.alert("错误", "创建我的过去对话失败");
+    }
   };
 
   const handleLifePlanner = async () => {
