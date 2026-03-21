@@ -24,6 +24,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { AgentStackParamList } from "../../navigation/types";
 import { useTheme } from "../../context/ThemeContext";
 import { chatService } from "../../services/chatService";
+import AppHeader from "../../components/AppHeader";
 
 interface Message {
   id: string;
@@ -56,9 +57,12 @@ export default function AgentChatScreen() {
     if (currentSessionId) {
       loadMessages(currentSessionId);
       // 加载会话标题
-      chatService.getSession(currentSessionId).then((s) => {
-        if (s.title) setSessionTitle(s.title);
-      }).catch(() => {});
+      chatService
+        .getSession(currentSessionId)
+        .then((s) => {
+          if (s.title) setSessionTitle(s.title);
+        })
+        .catch(() => {});
     } else {
       setMessages([
         {
@@ -146,22 +150,6 @@ export default function AgentChatScreen() {
         container: {
           flex: 1,
           backgroundColor: colors.background,
-        },
-        header: {
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          backgroundColor: colors.primary,
-          paddingTop: insets.top + 4,
-          paddingBottom: 12,
-          paddingHorizontal: 8,
-        },
-        headerTitle: {
-          fontSize: 18,
-          fontWeight: "bold",
-          color: colors.textOnPrimary,
-          flex: 1,
-          textAlign: "center",
         },
         loading: {
           flex: 1,
@@ -265,21 +253,14 @@ export default function AgentChatScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={90}
     >
-      <View style={styles.header}>
-        <IconButton
-          icon="arrow-left"
-          iconColor={colors.textOnPrimary}
-          size={24}
-          onPress={() => navigation.goBack()}
-        />
-        <Text style={styles.headerTitle}>{sessionTitle}</Text>
-        <IconButton
-          icon="history"
-          iconColor={colors.textOnPrimary}
-          size={24}
-          onPress={() => navigation.navigate("AgentSessionList")}
-        />
-      </View>
+      <AppHeader
+        title={sessionTitle}
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation.goBack()}
+        rightIcon="history"
+        onRightPress={() => navigation.navigate("AgentSessionList")}
+        centerTitle
+      />
 
       {loading ? (
         <View style={styles.loading}>

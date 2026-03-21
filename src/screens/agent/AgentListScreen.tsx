@@ -18,6 +18,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AgentStackParamList } from "../../navigation/types";
 import { useTheme } from "../../context/ThemeContext";
 import { chatService } from "../../services/chatService";
+import AppHeader from "../../components/AppHeader";
 
 interface Session {
   id: string;
@@ -64,17 +65,6 @@ export default function AgentListScreen() {
         container: {
           flex: 1,
           backgroundColor: colors.background,
-        },
-        header: {
-          padding: 20,
-          paddingTop: 48,
-          backgroundColor: colors.primary,
-        },
-        title: {
-          fontSize: 28,
-          fontWeight: "bold",
-          color: colors.textOnPrimary,
-          marginBottom: 12,
         },
         searchContainer: {
           flexDirection: "row",
@@ -156,8 +146,8 @@ export default function AgentListScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>AI对话</Text>
+      <View style={{ backgroundColor: colors.primary }}>
+        <AppHeader title="AI对话" />
         <View style={styles.searchContainer}>
           <IconButton
             icon="magnify"

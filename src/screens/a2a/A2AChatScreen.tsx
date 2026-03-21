@@ -23,6 +23,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { a2aService } from "../../services/a2aService";
 import type { A2AMessage, A2ARelation, A2ASenderType } from "../../types/a2a";
 import { KNOWLEDGE_MODULE_DESCRIPTIONS } from "../../types/knowledge";
+import AppHeader from "../../components/AppHeader";
 
 type A2AChatRouteProp = RouteProp<ProfileStackParamList, "A2AChat">;
 
@@ -49,25 +50,6 @@ export default function A2AChatScreen() {
     () =>
       StyleSheet.create({
         container: { flex: 1, backgroundColor: colors.background },
-        hero: {
-          backgroundColor: colors.primary,
-          paddingTop: 48,
-          paddingBottom: 18,
-          paddingHorizontal: 12,
-        },
-        heroTop: { flexDirection: "row", alignItems: "center" },
-        heroText: { flex: 1, paddingHorizontal: 4 },
-        heroTitle: {
-          fontSize: 22,
-          fontWeight: "800",
-          color: colors.textOnPrimary,
-        },
-        heroSubtitle: {
-          fontSize: 13,
-          color: colors.textOnPrimary,
-          opacity: 0.84,
-          marginTop: 4,
-        },
         banner: {
           margin: 12,
           marginBottom: 0,
@@ -245,28 +227,20 @@ export default function A2AChatScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={88}
     >
-      <View style={styles.hero}>
-        <View style={styles.heroTop}>
-          <IconButton
-            icon="arrow-left"
-            iconColor={colors.textOnPrimary}
-            onPress={() => navigation.goBack()}
-          />
-          <View style={styles.heroText}>
-            <Text style={styles.heroTitle}>
-              {relation
-                ? `正在和 ${relation.counterpartAvatar.name} 对话`
-                : "A2A 对话"}
-            </Text>
-            <Text style={styles.heroSubtitle}>
-              {relation
-                ? `${relation.counterpartUser.nickname || relation.counterpartUser.username || "对方用户"} · 我方分身 ${relation.selfAvatar.name}`
-                : "加载关系上下文中"}
-            </Text>
-          </View>
-          <View style={{ width: 48 }} />
-        </View>
-      </View>
+      <AppHeader
+        title={
+          relation
+            ? `正在和 ${relation.counterpartAvatar.name} 对话`
+            : "A2A对话"
+        }
+        subtitle={
+          relation
+            ? `${relation.counterpartUser.nickname || relation.counterpartUser.username || "对方用户"} · 我方分身 ${relation.selfAvatar.name}`
+            : "加载关系上下文中"
+        }
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation.goBack()}
+      />
 
       {relation ? (
         <>

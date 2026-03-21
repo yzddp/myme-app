@@ -19,6 +19,7 @@ import type { AuthStackParamList } from "../../navigation/types";
 import { useTheme } from "../../context/ThemeContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { apiService } from "../../services/api";
+import AppHeader from "../../components/AppHeader";
 
 type NavigationProp = NativeStackNavigationProp<AuthStackParamList>;
 
@@ -51,15 +52,12 @@ export default function ForgotPasswordScreen() {
       style={[styles.container, { backgroundColor: colors.background }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <View style={[styles.header, { backgroundColor: colors.primary, paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
-          <Icon source="arrow-left" size={24} color={colors.textOnPrimary} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.textOnPrimary }]}>
-          忘记密码
-        </Text>
-        <View style={styles.back} />
-      </View>
+      <AppHeader
+        title="忘记密码"
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation.goBack()}
+        centerTitle
+      />
 
       <View style={styles.body}>
         {sent ? (
@@ -112,21 +110,16 @@ export default function ForgotPasswordScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 8,
-    paddingBottom: 12,
-    paddingTop: 48,
-  },
-  back: { width: 40, padding: 8 },
-  headerTitle: { fontSize: 18, fontWeight: "bold" },
   body: { flex: 1, padding: 24 },
   desc: { fontSize: 14, marginBottom: 24, lineHeight: 20 },
   input: { marginBottom: 20 },
   sendBtn: { marginTop: 4 },
-  sentContainer: { flex: 1, alignItems: "center", justifyContent: "center", gap: 16 },
+  sentContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 16,
+  },
   sentTitle: { fontSize: 20, fontWeight: "bold" },
   sentDesc: { fontSize: 14, textAlign: "center", lineHeight: 20 },
   backBtn: { marginTop: 8 },

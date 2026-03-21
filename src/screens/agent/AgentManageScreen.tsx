@@ -415,7 +415,11 @@ export default function AgentManageScreen() {
 
   return (
     <View style={styles.container}>
-      <AppHeader title="Agent" rightIcon="plus" onRightPress={handleAddPress} />
+      <AppHeader
+        title="Agent管理"
+        rightIcon="plus"
+        onRightPress={handleAddPress}
+      />
 
       <View style={styles.tabContainer}>
         <SegmentedButtons
