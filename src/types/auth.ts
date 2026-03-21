@@ -10,29 +10,29 @@ export interface User {
   username: string | null;
   nickname: string | null;
   name: string | null;
+  avatar: string | null;
+  gender: "male" | "female" | "other" | null;
+  birthday: string | null;
   bio: string | null;
-  avatarId: string | null;
-  avatarUrl: string | null;
   theme: "warm" | "cool" | "dark";
   locale: string;
-  failedLoginAttempts?: number;
-  lockedUntil?: string | null;
   createdAt: string;
-  updatedAt?: string;
+  updatedAt: string;
 }
 
 // 注册请求
 export interface RegisterRequest {
+  username: string;
   email: string;
   password: string;
-  username?: string;
-  name?: string;
-  nickname?: string;
+  confirmPassword: string;
+  nickname: string;
 }
 
 // 登录请求
 export interface LoginRequest {
-  email: string;
+  email?: string;
+  username?: string;
   password: string;
 }
 

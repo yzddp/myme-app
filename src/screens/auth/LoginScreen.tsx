@@ -26,14 +26,14 @@ export default function LoginScreen() {
     useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { login } = useAuthStore();
 
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      setError("请输入邮箱和密码");
+    if (!identifier || !password) {
+      setError("请输入邮箱或用户名，以及密码");
       return;
     }
 
@@ -42,7 +42,7 @@ export default function LoginScreen() {
 
     try {
       // 调用真实登录API
-      const response = await authService.login(email, password);
+      const response = await authService.login(identifier, password);
       login(response.accessToken, response.refreshToken, response.user);
     } catch (err: any) {
       setError(err.message || "登录失败，请重试");
@@ -121,14 +121,13 @@ export default function LoginScreen() {
 
         <View style={styles.form}>
           <TextInput
-            label="邮箱"
-            value={email}
-            onChangeText={setEmail}
+            label="邮箱或用户名"
+            value={identifier}
+            onChangeText={setIdentifier}
             mode="outlined"
-            keyboardType="email-address"
             autoCapitalize="none"
             style={styles.input}
-            left={<TextInput.Icon icon="email" />}
+            left={<TextInput.Icon icon="account" />}
           />
 
           <TextInput

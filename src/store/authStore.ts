@@ -5,21 +5,7 @@
 
 import { create } from "zustand";
 import { storage } from "../utils/storage";
-
-// 用户类型定义 - PRD v3.0
-export interface User {
-  id: string;
-  email: string;
-  username: string | null;
-  nickname: string | null;
-  name: string | null;
-  bio: string | null;
-  avatarId: string | null;
-  avatarUrl: string | null;
-  theme: "warm" | "cool" | "dark";
-  locale: string;
-  createdAt: string;
-}
+import type { User } from "../types/auth";
 
 // 认证状态接口
 interface AuthState {

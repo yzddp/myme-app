@@ -12,18 +12,14 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-import {
-  Text,
-  Avatar,
-  Button,
-  ActivityIndicator,
-  IconButton,
-} from "react-native-paper";
+import { Text, Avatar, Button } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import { useAuthStore } from "../../store/authStore";
 import { userService } from "../../services/userService";
 import { useTheme } from "../../context/ThemeContext";
 import * as ImagePicker from "expo-image-picker";
+import AppHeader from "../../components/AppHeader";
+import { resolveAvatarUrl } from "../../utils/avatar";
 
 const PRESET_AVATARS = [
   { id: "avatar_1", label: "A1", color: "#FF6B6B" },
@@ -44,9 +40,10 @@ export default function UserAvatarScreen() {
   const { colors } = useTheme();
   const navigation = useNavigation();
   const { user, updateUser } = useAuthStore();
-  const [selectedAvatar, setSelectedAvatar] = useState(user?.avatarId || null);
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [customImageUri, setCustomImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const avatarUri = resolveAvatarUrl(user?.avatar);
 
   const handlePickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -72,14 +69,10 @@ export default function UserAvatarScreen() {
       backgroundColor: colors.background,
     },
     header: {
-      paddingTop: 48,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
       backgroundColor: colors.primary,
     },
     title: {
-      fontSize: 24,
+      fontSize: 28,
       fontWeight: "bold",
       color: colors.textOnPrimary,
     },
@@ -154,15 +147,12 @@ export default function UserAvatarScreen() {
       setLoading(true);
       if (customImageUri) {
         const result = await userService.uploadAvatarImage(customImageUri);
-        updateUser({ avatarUrl: result.avatarUrl, avatarId: null });
+        updateUser({ avatar: result.avatarUrl });
       } else {
-        try {
-          const updatedUser = await userService.updateAvatar(selectedAvatar!);
-          updateUser(updatedUser);
-        } catch {
-          // API may fail but still persist the local selection
-        }
-        updateUser({ avatarId: selectedAvatar!, avatarUrl: null });
+        const result = await userService.updateAvatar({
+          avatarId: selectedAvatar!,
+        });
+        updateUser({ avatar: result.avatar });
       }
       navigation.goBack();
     } catch (error) {
@@ -177,7 +167,12 @@ export default function UserAvatarScreen() {
     const isSelected = selectedAvatar === item.id;
     return (
       <View style={styles.avatarItem}>
-        <TouchableOpacity onPress={() => { setSelectedAvatar(item.id); setCustomImageUri(null); }}>
+        <TouchableOpacity
+          onPress={() => {
+            setSelectedAvatar(item.id);
+            setCustomImageUri(null);
+          }}
+        >
           <Avatar.Text
             size={64}
             label={item.label}
@@ -194,22 +189,18 @@ export default function UserAvatarScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <IconButton
-          icon="arrow-left"
-          iconColor={colors.textOnPrimary}
-          size={24}
-          onPress={() => navigation.goBack()}
-        />
-        <Text style={styles.title}>更换头像</Text>
-        <View style={{ width: 48 }} />
-      </View>
+      <AppHeader
+        title="更换头像"
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation.goBack()}
+        centerTitle
+      />
 
       <View style={styles.preview}>
         {customImageUri ? (
           <Image source={{ uri: customImageUri }} style={styles.previewImage} />
-        ) : user?.avatarUrl && !selectedAvatar ? (
-          <Image source={{ uri: user.avatarUrl }} style={styles.previewImage} />
+        ) : avatarUri && !selectedAvatar ? (
+          <Image source={{ uri: avatarUri }} style={styles.previewImage} />
         ) : (
           <Avatar.Text
             size={100}

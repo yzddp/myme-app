@@ -11,31 +11,57 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Text,
   TextInput,
   Button,
   Avatar,
-  IconButton,
+  SegmentedButtons,
 } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import { useAuthStore } from "../../store/authStore";
 import { userService } from "../../services/userService";
 import { useTheme } from "../../context/ThemeContext";
+import AppHeader from "../../components/AppHeader";
+import DatePickerInput from "../../components/DatePickerInput";
+import { resolveAvatarUrl } from "../../utils/avatar";
+
+const GENDER_OPTIONS = [
+  { value: "", label: "不设置" },
+  { value: "male", label: "男" },
+  { value: "female", label: "女" },
+  { value: "other", label: "其他" },
+];
 
 export default function ProfileEditScreen() {
+  const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const navigation = useNavigation();
   const { user, updateUser } = useAuthStore();
   const [loading, setLoading] = useState(false);
+  const [username, setUsername] = useState(user?.username || "");
+  const [name, setName] = useState(user?.name || "");
   const [nickname, setNickname] = useState(user?.nickname || "");
+  const [gender, setGender] = useState(user?.gender || "");
+  const [birthday, setBirthday] = useState(
+    user?.birthday ? user.birthday.split("T")[0] : "",
+  );
   const [bio, setBio] = useState(user?.bio || "");
+  const [locale, setLocale] = useState(user?.locale || "zh-CN");
+  const avatarUri = resolveAvatarUrl(user?.avatar);
 
   useEffect(() => {
-    if (user?.nickname) setNickname(user.nickname);
-    if (user?.bio) setBio(user.bio);
-  }, [user?.nickname, user?.bio]);
+    setUsername(user?.username || "");
+    setName(user?.name || "");
+    setNickname(user?.nickname || "");
+    setGender(user?.gender || "");
+    setBirthday(user?.birthday ? user.birthday.split("T")[0] : "");
+    setBio(user?.bio || "");
+    setLocale(user?.locale || "zh-CN");
+  }, [user]);
 
   const styles = StyleSheet.create({
     container: {
@@ -43,14 +69,10 @@ export default function ProfileEditScreen() {
       backgroundColor: colors.background,
     },
     header: {
-      paddingTop: 48,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
       backgroundColor: colors.primary,
     },
     title: {
-      fontSize: 24,
+      fontSize: 28,
       fontWeight: "bold",
       color: colors.textOnPrimary,
     },
@@ -94,16 +116,21 @@ export default function ProfileEditScreen() {
   });
 
   const handleSave = async () => {
-    if (!nickname.trim()) {
-      Alert.alert("错误", "请输入昵称");
+    if (!username.trim()) {
+      Alert.alert("错误", "请输入用户名");
       return;
     }
 
     try {
       setLoading(true);
       const updatedUser = await userService.updateProfile({
+        username: username.trim(),
+        name: name.trim(),
         nickname: nickname.trim(),
-        bio: bio.trim() || undefined,
+        gender: gender as "male" | "female" | "other" | "",
+        birthday: birthday || "",
+        bio: bio.trim(),
+        locale: locale.trim() || "zh-CN",
       });
       updateUser(updatedUser);
       navigation.goBack();
@@ -124,28 +151,44 @@ export default function ProfileEditScreen() {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <View style={styles.header}>
-        <IconButton
-          icon="arrow-left"
-          iconColor={colors.textOnPrimary}
-          size={24}
-          onPress={() => navigation.goBack()}
-        />
-        <Text style={styles.title}>编辑资料</Text>
-        <View style={{ width: 48 }} />
-      </View>
+      <AppHeader
+        title="编辑资料"
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation.goBack()}
+        centerTitle
+      />
 
       <ScrollView style={styles.content}>
         <View style={styles.avatarContainer}>
-          <Avatar.Text
-            size={100}
-            label={getAvatarLabel(nickname || user?.name || undefined)}
-            style={styles.avatar}
-          />
+          <TouchableOpacity
+            onPress={() => navigation.navigate("UserAvatar" as never)}
+          >
+            {avatarUri ? (
+              <Avatar.Image size={100} source={{ uri: avatarUri }} />
+            ) : (
+              <Avatar.Text
+                size={100}
+                label={getAvatarLabel(
+                  nickname || name || user?.name || undefined,
+                )}
+                style={styles.avatar}
+              />
+            )}
+          </TouchableOpacity>
           <Text style={styles.avatarHint}>点击头像可更换</Text>
         </View>
 
         <View style={styles.form}>
+          <TextInput
+            label="用户名"
+            value={username}
+            onChangeText={setUsername}
+            mode="outlined"
+            style={styles.input}
+            autoCapitalize="none"
+            maxLength={30}
+          />
+
           <TextInput
             label="邮箱"
             value={user?.email || ""}
@@ -155,12 +198,50 @@ export default function ProfileEditScreen() {
           />
 
           <TextInput
+            label="姓名"
+            value={name}
+            onChangeText={setName}
+            mode="outlined"
+            style={styles.input}
+            maxLength={30}
+            placeholder="请输入真实姓名或常用称呼"
+          />
+
+          <TextInput
             label="昵称"
             value={nickname}
             onChangeText={setNickname}
             mode="outlined"
             style={styles.input}
             maxLength={20}
+            placeholder="可留空"
+          />
+
+          <Text style={[styles.avatarHint, { marginTop: 0, marginBottom: 8 }]}>
+            性别
+          </Text>
+          <SegmentedButtons
+            value={gender}
+            onValueChange={setGender}
+            buttons={GENDER_OPTIONS}
+            style={{ marginBottom: 16 }}
+          />
+
+          <DatePickerInput
+            value={birthday}
+            onChange={setBirthday}
+            label="生日"
+            maximumDate={new Date().toISOString().split("T")[0]}
+          />
+
+          <TextInput
+            label="语言地区"
+            value={locale}
+            onChangeText={setLocale}
+            mode="outlined"
+            style={[styles.input, { marginTop: 16 }]}
+            autoCapitalize="none"
+            placeholder="例如 zh-CN"
           />
 
           <TextInput
@@ -172,7 +253,7 @@ export default function ProfileEditScreen() {
             multiline
             numberOfLines={4}
             maxLength={200}
-            placeholder="介绍一下自己..."
+            placeholder="介绍一下自己，可留空"
           />
           <Text style={styles.charCount}>{bio.length}/200</Text>
         </View>

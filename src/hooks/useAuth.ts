@@ -3,10 +3,10 @@
  * 认证相关功能Hook
  */
 
-import { useCallback } from 'react';
-import { useAuthStore } from '../store/authStore';
-import authService from '../services/authService';
-import type { User, LoginRequest, RegisterRequest } from '../types/auth';
+import { useCallback } from "react";
+import { useAuthStore } from "../store/authStore";
+import authService from "../services/authService";
+import type { User, RegisterRequest } from "../types/auth";
 
 /**
  * 认证Hook
@@ -14,11 +14,11 @@ import type { User, LoginRequest, RegisterRequest } from '../types/auth';
  */
 export const useAuth = () => {
   // 获取store状态
-  const { 
-    token, 
-    refreshToken, 
-    user, 
-    isAuthenticated, 
+  const {
+    token,
+    refreshToken,
+    user,
+    isAuthenticated,
     isLoading,
     login: storeLogin,
     logout: storeLogout,
@@ -30,53 +30,47 @@ export const useAuth = () => {
   /**
    * 登录
    */
-  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
-    storeSetLoading(true);
-    try {
-      const response = await authService.login(email, password);
-      
-      storeLogin(
-        response.accessToken,
-        response.refreshToken,
-        response.user
-      );
-      
-      return true;
-    } catch (error: any) {
-      console.error('Login failed:', error);
-      throw error;
-    } finally {
-      storeSetLoading(false);
-    }
-  }, [storeLogin, storeSetLoading]);
+  const login = useCallback(
+    async (identifier: string, password: string): Promise<boolean> => {
+      storeSetLoading(true);
+      try {
+        const response = await authService.login(identifier, password);
+
+        storeLogin(response.accessToken, response.refreshToken, response.user);
+
+        return true;
+      } catch (error: any) {
+        console.error("Login failed:", error);
+        throw error;
+      } finally {
+        storeSetLoading(false);
+      }
+    },
+    [storeLogin, storeSetLoading],
+  );
 
   /**
    * 注册
    */
-  const register = useCallback(async (
-    email: string, 
-    password: string, 
-    name: string
-  ): Promise<boolean> => {
-    storeSetLoading(true);
-    try {
-      const response = await authService.register(email, password, name);
-      
-      // 注册后自动登录
-      storeLogin(
-        response.accessToken,
-        response.refreshToken,
-        response.user
-      );
-      
-      return true;
-    } catch (error: any) {
-      console.error('Register failed:', error);
-      throw error;
-    } finally {
-      storeSetLoading(false);
-    }
-  }, [storeLogin, storeSetLoading]);
+  const register = useCallback(
+    async (payload: RegisterRequest): Promise<boolean> => {
+      storeSetLoading(true);
+      try {
+        const response = await authService.register(payload);
+
+        // 注册后自动登录
+        storeLogin(response.accessToken, response.refreshToken, response.user);
+
+        return true;
+      } catch (error: any) {
+        console.error("Register failed:", error);
+        throw error;
+      } finally {
+        storeSetLoading(false);
+      }
+    },
+    [storeLogin, storeSetLoading],
+  );
 
   /**
    * 登出
@@ -87,7 +81,7 @@ export const useAuth = () => {
       await authService.logout();
     } catch (error) {
       // 即使后端调用失败，也清除本地状态
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     } finally {
       storeLogout();
     }
@@ -102,7 +96,7 @@ export const useAuth = () => {
       storeUpdateToken(response.accessToken);
       return true;
     } catch (error) {
-      console.error('Refresh token failed:', error);
+      console.error("Refresh token failed:", error);
       storeLogout();
       return false;
     }
@@ -123,9 +117,12 @@ export const useAuth = () => {
   /**
    * 更新用户信息
    */
-  const updateUser = useCallback((user: User): void => {
-    storeSetUser(user);
-  }, [storeSetUser]);
+  const updateUser = useCallback(
+    (user: User): void => {
+      storeSetUser(user);
+    },
+    [storeSetUser],
+  );
 
   return {
     // State
@@ -134,7 +131,7 @@ export const useAuth = () => {
     user,
     isAuthenticated,
     isLoading,
-    
+
     // Actions
     login,
     register,

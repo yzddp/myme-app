@@ -31,12 +31,12 @@ export default function RegisterScreen() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [name, setName] = useState("");
+  const [nickname, setNickname] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleRegister = async () => {
-    if (!email || !password || !username) {
+    if (!email || !password || !username || !nickname) {
       setError("请填写所有必填项");
       return;
     }
@@ -56,12 +56,13 @@ export default function RegisterScreen() {
 
     try {
       // 调用真实注册API
-      const response = await authService.register(
+      const response = await authService.register({
+        username: username.trim(),
         email,
         password,
-        name,
-        username,
-      );
+        confirmPassword,
+        nickname: nickname.trim(),
+      });
       login(response.accessToken, response.refreshToken, response.user);
     } catch (err: any) {
       setError(err.message || "注册失败，请重试");
@@ -163,6 +164,15 @@ export default function RegisterScreen() {
             autoCapitalize="none"
             style={styles.input}
             left={<TextInput.Icon icon="email" />}
+          />
+
+          <TextInput
+            label="昵称"
+            value={nickname}
+            onChangeText={setNickname}
+            mode="outlined"
+            style={styles.input}
+            left={<TextInput.Icon icon="badge-account" />}
           />
 
           <TextInput

@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   Pressable,
 } from "react-native";
-import { Text, Avatar, Card, List, Divider } from "react-native-paper";
+import { Text, Avatar, Card, List } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -22,23 +22,19 @@ import { useTheme } from "../../context/ThemeContext";
 import type { User } from "../../types/auth";
 import type { ProfileStackParamList } from "../../navigation/types";
 import { navigationRef, resetToAuth } from "../../navigation/navigationRef";
-
-const PRESET_AVATAR_COLORS: Record<string, string> = {
-  avatar_1: "#FF6B6B", avatar_2: "#4ECDC4", avatar_3: "#45B7D1",
-  avatar_4: "#96CEB4", avatar_5: "#FFEAA7", avatar_6: "#DDA0DD",
-  avatar_7: "#98D8C8", avatar_8: "#F7DC6F", avatar_9: "#BB8FCE",
-  avatar_10: "#85C1E9", avatar_11: "#F8B500", avatar_12: "#00CED1",
-};
-
-const PRESET_AVATAR_LABELS: Record<string, string> = {
-  avatar_1: "A1", avatar_2: "A2", avatar_3: "A3", avatar_4: "A4",
-  avatar_5: "A5", avatar_6: "A6", avatar_7: "A7", avatar_8: "A8",
-  avatar_9: "A9", avatar_10: "B1", avatar_11: "B2", avatar_12: "B3",
-};
+import AppHeader from "../../components/AppHeader";
+import { confirmAction } from "../../utils/confirm";
+import { resolveAvatarUrl } from "../../utils/avatar";
 
 type NavigationProp = NativeStackNavigationProp<ProfileStackParamList>;
 
 const ROW_STYLE = { minHeight: 0, paddingVertical: 6 };
+
+const THEME_LABELS: Record<string, string> = {
+  warm: "暖色系",
+  cool: "冷色系",
+  dark: "暗色系",
+};
 
 export default function ProfileScreen() {
   const navigation = useNavigation<NavigationProp>();
@@ -62,35 +58,60 @@ export default function ProfileScreen() {
 
   const doLogout = () => {
     logout();
-    // 如果 Zustand 响应式渲染 300ms 内没生效，主动 resetToAuth
-    const timer = setTimeout(() => {
+
+    setTimeout(() => {
       if (navigationRef.isReady()) {
         resetToAuth();
       }
     }, 300);
   };
 
-  const handleLogout = () => {
-    Alert.alert(
-      "退出登录",
-      "确定要退出登录吗？",
-      [
-        { text: "取消", style: "cancel" },
-        { text: "确定", style: "destructive", onPress: doLogout },
-      ],
-      { cancelable: true },
-    );
+  const handleLogout = async () => {
+    const confirmed = await confirmAction({
+      title: "退出登录",
+      message: "确定要退出登录吗？",
+      confirmText: "确定",
+      cancelText: "取消",
+      destructive: true,
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    doLogout();
   };
 
-  const displayName =
-    user?.nickname || user?.name || user?.username || "用户";
-  const avatarId = user?.avatarId;
-  const avatarBg = avatarId && PRESET_AVATAR_COLORS[avatarId]
-    ? PRESET_AVATAR_COLORS[avatarId]
-    : colors.primary;
-  const avatarLabel = avatarId && PRESET_AVATAR_LABELS[avatarId]
-    ? PRESET_AVATAR_LABELS[avatarId]
-    : (displayName.substring(0, 2).toUpperCase() || "我");
+  const displayName = user?.nickname || user?.name || user?.username || "用户";
+  const avatarLabel = displayName.substring(0, 2).toUpperCase() || "我";
+  const avatarUri = resolveAvatarUrl(user?.avatar);
+
+  const formatDate = (value?: string | null) => {
+    if (!value) return "未设置";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+    return date.toLocaleDateString("zh-CN");
+  };
+
+  const formatDateTime = (value?: string | null) => {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+    return date.toLocaleString("zh-CN");
+  };
+
+  const genderLabel =
+    user?.gender === "male"
+      ? "男"
+      : user?.gender === "female"
+        ? "女"
+        : user?.gender === "other"
+          ? "其他"
+          : "未设置";
 
   const mkItem = (title: string, icon: string, onPress: () => void) => (
     <List.Item
@@ -101,7 +122,11 @@ export default function ProfileScreen() {
         <List.Icon {...props} icon={icon} color={colors.primary} />
       )}
       right={(props) => (
-        <List.Icon {...props} icon="chevron-right" color={colors.textTertiary} />
+        <List.Icon
+          {...props}
+          icon="chevron-right"
+          color={colors.textTertiary}
+        />
       )}
       onPress={onPress}
     />
@@ -112,28 +137,115 @@ export default function ProfileScreen() {
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
     >
-      {/* ─── 头部：头像 + 昵称 ─── */}
-      <View
-        style={[
-          styles.header,
-          { backgroundColor: colors.primary, paddingTop: insets.top + 20 },
-        ]}
-      >
+      {/* ─── 头部 ─── */}
+      <AppHeader title="我的" />
+
+      {/* ─── 头像 + 昵称 ─── */}
+      <View style={styles.profileSection}>
         <TouchableOpacity onPress={() => navigation.navigate("UserAvatar")}>
-          {user?.avatarUrl ? (
-            <Avatar.Image size={80} source={{ uri: user.avatarUrl }} />
+          {avatarUri ? (
+            <Avatar.Image size={80} source={{ uri: avatarUri }} />
           ) : (
             <Avatar.Text
               size={80}
               label={avatarLabel}
-              style={{ backgroundColor: avatarBg }}
+              style={{ backgroundColor: colors.primary }}
             />
           )}
         </TouchableOpacity>
-        <Text style={[styles.username, { color: colors.textOnPrimary }]}>
+        <Text style={[styles.username, { color: colors.textPrimary }]}>
           {displayName}
         </Text>
+        <Text style={[styles.subline, { color: colors.textSecondary }]}>
+          @{user?.username || "未设置用户名"}
+        </Text>
       </View>
+
+      <Card style={[styles.card, { backgroundColor: colors.surface }]}>
+        <Card.Content style={styles.infoCardContent}>
+          <Text style={[styles.infoCardTitle, { color: colors.textPrimary }]}>
+            个人信息
+          </Text>
+          <View style={styles.infoRow}>
+            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
+              姓名
+            </Text>
+            <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
+              {user?.name || "未设置"}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
+              昵称
+            </Text>
+            <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
+              {user?.nickname || "未设置"}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
+              邮箱
+            </Text>
+            <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
+              {user?.email || "未设置"}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
+              性别
+            </Text>
+            <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
+              {genderLabel}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
+              生日
+            </Text>
+            <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
+              {formatDate(user?.birthday)}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
+              地区
+            </Text>
+            <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
+              {user?.locale || "未设置"}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
+              主题
+            </Text>
+            <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
+              {THEME_LABELS[user?.theme || "warm"] || user?.theme || "warm"}
+            </Text>
+          </View>
+          <View style={[styles.infoRow, styles.infoRowTop]}>
+            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
+              简介
+            </Text>
+            <Text
+              style={[
+                styles.infoValue,
+                styles.bioText,
+                { color: colors.textPrimary },
+              ]}
+            >
+              {user?.bio || "这个人很神秘，还没有留下简介。"}
+            </Text>
+          </View>
+          <View style={styles.metaRow}>
+            <Text style={[styles.metaText, { color: colors.textTertiary }]}>
+              注册于 {formatDateTime(user?.createdAt)}
+            </Text>
+            <Text style={[styles.metaText, { color: colors.textTertiary }]}>
+              更新于 {formatDateTime(user?.updatedAt)}
+            </Text>
+          </View>
+        </Card.Content>
+      </Card>
 
       {/* ─── 菜单列表 ─── */}
       <Card style={[styles.card, { backgroundColor: colors.surface }]}>
@@ -144,13 +256,9 @@ export default function ProfileScreen() {
 
       <Card style={[styles.card, { backgroundColor: colors.surface }]}>
         <Card.Content style={styles.cardContent}>
-          {mkItem("资料", "account-edit", () => navigation.navigate("ProfileEdit"))}
-        </Card.Content>
-      </Card>
-
-      <Card style={[styles.card, { backgroundColor: colors.surface }]}>
-        <Card.Content style={styles.cardContent}>
-          {mkItem("A2A关系", "account-group", () => navigation.navigate("A2AList"))}
+          {mkItem("资料", "account-edit", () =>
+            navigation.navigate("ProfileEdit"),
+          )}
         </Card.Content>
       </Card>
 
@@ -162,7 +270,9 @@ export default function ProfileScreen() {
 
       <Card style={[styles.card, { backgroundColor: colors.surface }]}>
         <Card.Content style={styles.cardContent}>
-          {mkItem("通知", "bell", () => navigation.navigate("NotificationSettings"))}
+          {mkItem("通知", "bell", () =>
+            navigation.navigate("NotificationSettings"),
+          )}
         </Card.Content>
       </Card>
 
@@ -174,7 +284,9 @@ export default function ProfileScreen() {
 
       <Card style={[styles.card, { backgroundColor: colors.surface }]}>
         <Card.Content style={styles.cardContent}>
-          {mkItem("意见反馈", "message-text", () => navigation.navigate("Feedback"))}
+          {mkItem("意见反馈", "message-text", () =>
+            navigation.navigate("Feedback"),
+          )}
         </Card.Content>
       </Card>
 
@@ -205,19 +317,62 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
+  profileSection: {
     alignItems: "center",
-    padding: 32,
-    paddingTop: 32,
+    paddingVertical: 24,
   },
   username: {
     fontSize: 20,
     fontWeight: "bold",
     marginTop: 12,
   },
+  subline: {
+    fontSize: 13,
+    marginTop: 4,
+  },
   card: {
     marginHorizontal: 16,
     marginTop: 10,
+  },
+  infoCardContent: {
+    paddingVertical: 8,
+  },
+  infoCardTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    marginBottom: 12,
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 16,
+    paddingVertical: 8,
+  },
+  infoRowTop: {
+    alignItems: "flex-start",
+  },
+  infoLabel: {
+    fontSize: 14,
+    flexShrink: 0,
+  },
+  infoValue: {
+    fontSize: 14,
+    flex: 1,
+    textAlign: "right",
+  },
+  bioText: {
+    lineHeight: 20,
+  },
+  metaRow: {
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0,0,0,0.08)",
+    marginTop: 8,
+    paddingTop: 12,
+    gap: 4,
+  },
+  metaText: {
+    fontSize: 12,
   },
   cardContent: {
     padding: 0,

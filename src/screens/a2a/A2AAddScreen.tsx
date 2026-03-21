@@ -1,61 +1,110 @@
-/**
- * MyMe App - A2A Add Screen
- * 添加A2A关系页面（通过分享码 + 选择授权模块）
- */
-
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
-  View,
-  StyleSheet,
+  Alert,
   KeyboardAvoidingView,
   Platform,
-  TouchableOpacity,
   ScrollView,
-  Alert,
+  StyleSheet,
+  View,
 } from "react-native";
-import { Text, TextInput, Button, Chip, Icon } from "react-native-paper";
+import {
+  Avatar,
+  Button,
+  Card,
+  Chip,
+  Text,
+  TextInput,
+} from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { ProfileStackParamList } from "../../navigation/types";
 import { useTheme } from "../../context/ThemeContext";
 import { a2aService } from "../../services/a2aService";
-import type { KnowledgeModule } from "../../types/knowledge";
+import { avatarService } from "../../services/avatarService";
+import type { Avatar as MyAvatar } from "../../types/avatar";
 import { KNOWLEDGE_MODULE_DESCRIPTIONS } from "../../types/knowledge";
+import AppHeader from "../../components/AppHeader";
+import { resolveAvatarUrl } from "../../utils/avatar";
 
 type NavigationProp = NativeStackNavigationProp<ProfileStackParamList>;
 
-const ALL_MODULES: KnowledgeModule[] = [
-  "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10",
-];
-
 export default function A2AAddScreen() {
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   const [shareCode, setShareCode] = useState("");
-  const [selectedModules, setSelectedModules] = useState<KnowledgeModule[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [preview, setPreview] = useState<Awaited<
+    ReturnType<typeof a2aService.validateShareCode>
+  > | null>(null);
+  const [myAvatars, setMyAvatars] = useState<MyAvatar[]>([]);
+  const [selectedAvatarId, setSelectedAvatarId] = useState<string | null>(null);
+  const previewOwnerAvatarUrl = resolveAvatarUrl(preview?.ownerUser?.avatarUrl);
 
-  const toggleModule = (module: KnowledgeModule) => {
-    setSelectedModules((prev) =>
-      prev.includes(module) ? prev.filter((m) => m !== module) : [...prev, module],
-    );
+  useEffect(() => {
+    loadMyAvatars();
+  }, []);
+
+  const activeAvatars = useMemo(
+    () => myAvatars.filter((avatar) => avatar.status === "active"),
+    [myAvatars],
+  );
+
+  const loadMyAvatars = async () => {
+    try {
+      const response = await avatarService.getAvatars();
+      setMyAvatars(response.avatars ?? []);
+    } catch (error) {
+      console.error("Failed to load avatars:", error);
+    }
   };
 
-  const handleAdd = async () => {
+  const handleValidate = async () => {
     if (!shareCode.trim()) {
       Alert.alert("提示", "请输入分享码");
       return;
     }
-    setLoading(true);
+
+    setPreviewLoading(true);
     try {
-      await a2aService.createRelation(shareCode.trim(), selectedModules);
-      navigation.goBack();
+      const result = await a2aService.validateShareCode(shareCode.trim());
+      if (!result.valid || !result.ownerAvatar) {
+        setPreview(null);
+        Alert.alert("校验失败", "分享码无效或已过期");
+        return;
+      }
+
+      setPreview(result);
     } catch (error: any) {
-      Alert.alert("添加失败", error.message || "请检查分享码是否正确");
+      setPreview(null);
+      Alert.alert("校验失败", error.message || "分享码无效或已过期");
     } finally {
-      setLoading(false);
+      setPreviewLoading(false);
+    }
+  };
+
+  const handleCreateRelation = async () => {
+    if (!preview?.ownerAvatar) {
+      Alert.alert("提示", "请先校验分享码");
+      return;
+    }
+
+    if (!selectedAvatarId) {
+      Alert.alert("提示", "请选择我方要使用的分身");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const relation = await a2aService.createRelation(
+        shareCode.trim(),
+        selectedAvatarId,
+      );
+      navigation.replace("A2AChat", { relationId: relation.id });
+    } catch (error: any) {
+      Alert.alert("添加失败", error.message || "关系创建失败");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -64,76 +113,189 @@ export default function A2AAddScreen() {
       style={[styles.container, { backgroundColor: colors.background }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <View style={[styles.header, { backgroundColor: colors.primary, paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
-          <Icon source="arrow-left" size={24} color={colors.textOnPrimary} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.textOnPrimary }]}>
-          添加A2A关系
-        </Text>
-        <View style={styles.iconBtn} />
-      </View>
+      <AppHeader
+        title="添加 A2A 关系"
+        subtitle="先确认对方分身，再选择我方分身"
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation.goBack()}
+      />
 
-      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-        <Text style={[styles.label, { color: colors.textPrimary }]}>分享码</Text>
-        <Text style={[styles.hint, { color: colors.textSecondary }]}>
-          输入对方的6位分享码以建立A2A关系
-        </Text>
-        <TextInput
-          value={shareCode}
-          onChangeText={setShareCode}
-          mode="outlined"
-          autoCapitalize="characters"
-          autoCorrect={false}
-          maxLength={6}
-          style={styles.input}
-          placeholder="例如: ABC123"
-        />
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Card style={[styles.sectionCard, { backgroundColor: colors.surface }]}>
+          <Card.Content>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+              1. 校验分享码
+            </Text>
+            <Text style={[styles.sectionHint, { color: colors.textSecondary }]}>
+              分享码通过后，先看到对方公开分享的是哪个分身与哪些知识模块。
+            </Text>
+            <TextInput
+              value={shareCode}
+              onChangeText={setShareCode}
+              mode="outlined"
+              autoCapitalize="characters"
+              autoCorrect={false}
+              style={styles.input}
+              placeholder="输入分享码"
+            />
+            <Button
+              mode="outlined"
+              onPress={handleValidate}
+              loading={previewLoading}
+              disabled={previewLoading || !shareCode.trim()}
+            >
+              校验分享码
+            </Button>
+          </Card.Content>
+        </Card>
 
-        <Text style={[styles.label, { color: colors.textPrimary }]}>
-          授权模块（可选）
-        </Text>
-        <Text style={[styles.hint, { color: colors.textSecondary }]}>
-          选择允许对方查看的知识模块，不选则默认不授权
-        </Text>
-        <View style={styles.moduleGrid}>
-          {ALL_MODULES.map((module) => {
-            const selected = selectedModules.includes(module);
-            return (
-              <Chip
-                key={module}
-                selected={selected}
-                onPress={() => toggleModule(module)}
-                style={[
-                  styles.chip,
-                  selected
-                    ? { backgroundColor: colors.primary }
-                    : { backgroundColor: colors.surfaceVariant },
-                ]}
-                textStyle={{ color: selected ? colors.textOnPrimary : colors.textSecondary, fontSize: 12 }}
+        {preview?.ownerAvatar ? (
+          <Card
+            style={[styles.sectionCard, { backgroundColor: colors.surface }]}
+          >
+            <Card.Content>
+              <Text
+                style={[styles.sectionTitle, { color: colors.textPrimary }]}
               >
-                {module} {KNOWLEDGE_MODULE_DESCRIPTIONS[module]
-                  ? KNOWLEDGE_MODULE_DESCRIPTIONS[module].slice(0, 4)
-                  : ""}
-              </Chip>
-            );
-          })}
-        </View>
+                2. 对方分身预览
+              </Text>
+              <View style={styles.previewHeader}>
+                {previewOwnerAvatarUrl ? (
+                  <Avatar.Image
+                    size={52}
+                    source={{ uri: previewOwnerAvatarUrl }}
+                  />
+                ) : (
+                  <Avatar.Text
+                    size={52}
+                    label={(
+                      preview.ownerUser?.nickname || preview.ownerAvatar.name
+                    ).slice(0, 2)}
+                  />
+                )}
+                <View style={styles.previewMeta}>
+                  <Text
+                    style={[styles.previewName, { color: colors.textPrimary }]}
+                  >
+                    {preview.ownerUser?.nickname || "对方用户"}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.previewSubtext,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
+                    对方分身：{preview.ownerAvatar.name}
+                  </Text>
+                </View>
+              </View>
 
-        {selectedModules.length > 0 && (
-          <Text style={[styles.selectedHint, { color: colors.primary }]}>
-            已选 {selectedModules.length} 个模块: {selectedModules.join(", ")}
-          </Text>
-        )}
+              <Text
+                style={[styles.sectionHint, { color: colors.textSecondary }]}
+              >
+                对方分身已开放的知识模块
+              </Text>
+              <View style={styles.chipRow}>
+                {preview.ownerAvatar.permissions.length > 0 ? (
+                  preview.ownerAvatar.permissions.map((module) => (
+                    <Chip key={module} style={styles.chip}>
+                      {module}
+                    </Chip>
+                  ))
+                ) : (
+                  <Text style={{ color: colors.textSecondary }}>
+                    未开放知识模块
+                  </Text>
+                )}
+              </View>
+
+              {preview.ownerAvatar.permissions.map((module) => (
+                <Text
+                  key={module}
+                  style={[styles.moduleText, { color: colors.textSecondary }]}
+                >
+                  {module} · {KNOWLEDGE_MODULE_DESCRIPTIONS[module]}
+                </Text>
+              ))}
+            </Card.Content>
+          </Card>
+        ) : null}
+
+        <Card style={[styles.sectionCard, { backgroundColor: colors.surface }]}>
+          <Card.Content>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+              3. 选择我方分身
+            </Text>
+            {activeAvatars.length === 0 ? (
+              <>
+                <Text
+                  style={[styles.sectionHint, { color: colors.textSecondary }]}
+                >
+                  当前没有 active Avatar，请先创建分身再建立关系。
+                </Text>
+                <Button
+                  mode="contained-tonal"
+                  onPress={() => navigation.navigate("Profile")}
+                >
+                  返回我的页面
+                </Button>
+              </>
+            ) : (
+              <View style={styles.avatarList}>
+                {activeAvatars.map((avatar) => {
+                  const selected = avatar.id === selectedAvatarId;
+                  return (
+                    <Card
+                      key={avatar.id}
+                      style={[
+                        styles.avatarCard,
+                        {
+                          backgroundColor: selected
+                            ? colors.primaryLight
+                            : colors.background,
+                          borderColor: selected
+                            ? colors.primary
+                            : colors.border,
+                        },
+                      ]}
+                      onPress={() => setSelectedAvatarId(avatar.id)}
+                    >
+                      <Card.Content>
+                        <Text
+                          style={[
+                            styles.avatarName,
+                            { color: colors.textPrimary },
+                          ]}
+                        >
+                          {avatar.name}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.avatarDesc,
+                            { color: colors.textSecondary },
+                          ]}
+                        >
+                          {avatar.description || "未填写备注"}
+                        </Text>
+                      </Card.Content>
+                    </Card>
+                  );
+                })}
+              </View>
+            )}
+          </Card.Content>
+        </Card>
 
         <Button
           mode="contained"
-          onPress={handleAdd}
-          loading={loading}
-          disabled={loading || !shareCode.trim()}
-          style={styles.addBtn}
+          onPress={handleCreateRelation}
+          loading={submitting}
+          disabled={submitting || !preview?.ownerAvatar || !selectedAvatarId}
         >
-          添加
+          确认建立关系
         </Button>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -142,26 +304,25 @@ export default function A2AAddScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
+  content: { padding: 16, gap: 16 },
+  sectionCard: { borderRadius: 20 },
+  sectionTitle: { fontSize: 18, fontWeight: "700", marginBottom: 8 },
+  sectionHint: { fontSize: 13, lineHeight: 20, marginBottom: 12 },
+  input: { marginBottom: 12 },
+  previewHeader: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 8,
-    paddingBottom: 12,
+    gap: 12,
+    marginBottom: 12,
   },
-  iconBtn: { width: 40, padding: 8 },
-  headerTitle: { fontSize: 18, fontWeight: "bold" },
-  body: { padding: 24, gap: 8 },
-  label: { fontSize: 16, fontWeight: "600", marginTop: 8 },
-  hint: { fontSize: 13, lineHeight: 18, marginBottom: 8 },
-  input: { marginBottom: 4 },
-  moduleGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginBottom: 4,
-  },
-  chip: { marginBottom: 2 },
-  selectedHint: { fontSize: 13, marginTop: 4 },
-  addBtn: { marginTop: 24 },
+  previewMeta: { flex: 1 },
+  previewName: { fontSize: 17, fontWeight: "700" },
+  previewSubtext: { fontSize: 13, marginTop: 4 },
+  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 8 },
+  chip: { marginBottom: 8 },
+  moduleText: { fontSize: 12, lineHeight: 18, marginTop: 4 },
+  avatarList: { gap: 10 },
+  avatarCard: { borderWidth: 1, borderRadius: 16 },
+  avatarName: { fontSize: 16, fontWeight: "700", marginBottom: 4 },
+  avatarDesc: { fontSize: 13, lineHeight: 18 },
 });

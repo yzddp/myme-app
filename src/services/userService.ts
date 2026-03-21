@@ -4,7 +4,8 @@
  */
 
 import { apiService } from "./api";
-import type { User } from "../store/authStore";
+import { authService } from "./authService";
+import type { User } from "../types/auth";
 
 const USER_ENDPOINTS = {
   base: "/user",
@@ -16,7 +17,11 @@ const USER_ENDPOINTS = {
 };
 
 export interface UpdateProfileRequest {
+  username?: string;
+  name?: string;
   nickname?: string;
+  gender?: "male" | "female" | "other" | "";
+  birthday?: string;
   bio?: string;
   theme?: "warm" | "cool" | "dark";
   locale?: string;
@@ -44,7 +49,8 @@ export const userService = {
    * @returns 用户资料
    */
   async getProfile(): Promise<User> {
-    return apiService.get<User>(USER_ENDPOINTS.profile);
+    const response = await apiService.get<User>(USER_ENDPOINTS.profile);
+    return authService.normalizeUser(response);
   },
 
   /**
@@ -53,16 +59,23 @@ export const userService = {
    * @returns 更新后的用户资料
    */
   async updateProfile(data: UpdateProfileRequest): Promise<User> {
-    return apiService.put<User>(USER_ENDPOINTS.profile, data);
+    const response = await apiService.put<User>(USER_ENDPOINTS.profile, data);
+    return authService.normalizeUser(response);
   },
 
   /**
    * 更新用户头像
-   * @param avatarId 头像ID
-   * @returns 更新后的用户资料
+   * @param payload 头像地址或预设头像ID
+   * @returns 最新头像地址
    */
-  async updateAvatar(avatarId: string): Promise<User> {
-    return apiService.put<User>(USER_ENDPOINTS.avatar, { avatarId });
+  async updateAvatar(payload: {
+    avatar?: string;
+    avatarId?: string;
+  }): Promise<{ avatar: string | null }> {
+    return apiService.put<{ avatar: string | null }>(
+      USER_ENDPOINTS.avatar,
+      payload,
+    );
   },
 
   /**
@@ -104,7 +117,7 @@ export const userService = {
     oldPassword: string,
     newPassword: string,
   ): Promise<void> {
-    return apiService.post(`${USER_ENDPOINTS.base}/change-password`, {
+    return apiService.put(`${USER_ENDPOINTS.base}/password`, {
       oldPassword,
       newPassword,
     });
@@ -118,13 +131,16 @@ export const userService = {
     const formData = new FormData();
     const filename = imageUri.split("/").pop() || "avatar.jpg";
     const ext = (filename.split(".").pop() || "jpg").toLowerCase();
+    const mimeType = ext === "jpg" ? "image/jpeg" : `image/${ext}`;
+
     formData.append("avatar", {
       uri: imageUri,
       name: filename,
-      type: `image/${ext}`,
+      type: mimeType,
     } as any);
+
     return apiService.upload<{ avatarUrl: string }>(
-      `${USER_ENDPOINTS.profile}/avatar`,
+      `${USER_ENDPOINTS.avatar}/upload`,
       formData,
     );
   },

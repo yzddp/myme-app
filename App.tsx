@@ -3,7 +3,7 @@
  * AI驱动的数字分身应用
  */
 
-import React from "react";
+import React, { useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NavigationContainer } from "@react-navigation/native";
@@ -15,6 +15,8 @@ import { StyleSheet } from "react-native";
 import { ThemeProvider, useTheme } from "./src/context/ThemeContext";
 import AppNavigator from "./src/navigation/AppNavigator";
 import { navigationRef } from "./src/navigation/navigationRef";
+import { useAuthStore } from "./src/store/authStore";
+import { authService } from "./src/services/authService";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,6 +30,35 @@ const queryClient = new QueryClient({
 // 创建一个包装组件来使用主题
 const ThemedApp = () => {
   const { themeMode, colors } = useTheme();
+  const { isAuthenticated, user, setUser, logout } = useAuthStore();
+
+  useEffect(() => {
+    if (!isAuthenticated || user) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const bootstrapUser = async () => {
+      try {
+        const currentUser = await authService.getCurrentUser();
+        if (!cancelled) {
+          setUser(currentUser);
+        }
+      } catch (error) {
+        console.error("Failed to bootstrap current user:", error);
+        if (!cancelled) {
+          logout();
+        }
+      }
+    };
+
+    void bootstrapUser();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, user, setUser, logout]);
 
   const theme = {
     ...MD3LightTheme,

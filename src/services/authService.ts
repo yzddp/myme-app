@@ -25,21 +25,31 @@ const AUTH_ENDPOINTS = {
  * 认证服务
  */
 export const authService = {
+  normalizeUser(user: User): User {
+    return {
+      id: user.id,
+      email: user.email,
+      username: user.username ?? null,
+      nickname: user.nickname ?? null,
+      name: user.name ?? null,
+      avatar: user.avatar ?? null,
+      gender: user.gender ?? null,
+      birthday: user.birthday ?? null,
+      bio: user.bio ?? null,
+      theme: user.theme ?? "warm",
+      locale: user.locale ?? "zh-CN",
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt ?? user.createdAt,
+    };
+  },
+
   /**
    * 用户注册
-   * @param email 邮箱地址
-   * @param password 密码
-   * @param name 用户名称
-   * @param username 用户名
+   * @param payload 注册信息
    * @returns 认证响应（包含token和用户信息）
    */
-  async register(
-    email: string,
-    password: string,
-    name?: string,
-    username?: string,
-  ): Promise<AuthResponse> {
-    const request: RegisterRequest = { email, password, name, username };
+  async register(payload: RegisterRequest): Promise<AuthResponse> {
+    const request: RegisterRequest = payload;
     const response = await apiService.post<AuthResponse>(
       AUTH_ENDPOINTS.register,
       request,
@@ -53,17 +63,23 @@ export const authService = {
       storage.set(REFRESH_TOKEN_KEY, response.refreshToken);
     }
 
-    return response;
+    return {
+      ...response,
+      user: authService.normalizeUser(response.user),
+    };
   },
 
   /**
    * 用户登录
-   * @param email 邮箱地址
+   * @param identifier 邮箱或用户名
    * @param password 密码
    * @returns 认证响应（包含token和用户信息）
    */
-  async login(email: string, password: string): Promise<AuthResponse> {
-    const request: LoginRequest = { email, password };
+  async login(identifier: string, password: string): Promise<AuthResponse> {
+    const normalized = identifier.trim();
+    const request: LoginRequest = normalized.includes("@")
+      ? { email: normalized, password }
+      : { username: normalized, password };
     const response = await apiService.post<AuthResponse>(
       AUTH_ENDPOINTS.login,
       request,
@@ -77,7 +93,10 @@ export const authService = {
       storage.set(REFRESH_TOKEN_KEY, response.refreshToken);
     }
 
-    return response;
+    return {
+      ...response,
+      user: authService.normalizeUser(response.user),
+    };
   },
 
   /**
@@ -105,7 +124,10 @@ export const authService = {
       storage.set(REFRESH_TOKEN_KEY, response.refreshToken);
     }
 
-    return response;
+    return {
+      ...response,
+      user: authService.normalizeUser(response.user),
+    };
   },
 
   /**
@@ -127,7 +149,7 @@ export const authService = {
    */
   async getCurrentUser(): Promise<User> {
     const response = await apiService.get<User>(AUTH_ENDPOINTS.me);
-    return response;
+    return authService.normalizeUser(response);
   },
 
   /**
