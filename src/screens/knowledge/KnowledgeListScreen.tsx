@@ -57,7 +57,8 @@ export const KnowledgeListScreen: React.FC<KnowledgeListScreenProps> = ({
     if (!navigation) return;
     const unsubscribe = navigation.addListener("focus", () => {
       loadModules();
-      if (currentModule) loadByModule(currentModule);
+      const latestModule = useKnowledgeStore.getState().currentModule;
+      if (latestModule) useKnowledgeStore.getState().loadByModule(latestModule);
     });
     return unsubscribe;
   }, [navigation]);
