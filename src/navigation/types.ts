@@ -40,7 +40,8 @@ export type DiaryStackParamList = {
     reportId: string;
     periodType: "weekly" | "monthly" | "yearly";
   };
-  DiaryAnalysis: { periodType: string };
+  DiaryAnalysis: { periodType?: string } | undefined;
+  DiaryAnalysisSettings: undefined;
 };
 
 export type AgentStackParamList = {

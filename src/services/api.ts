@@ -65,6 +65,9 @@ api.interceptors.response.use(
     if (data && data.success === true && data.data !== undefined) {
       // 如果data是数组，根据URL端点返回对应格式
       if (Array.isArray(data.data)) {
+        if (url.includes("/avatars/presets")) {
+          return { categories: data.data };
+        }
         // 根据端点名称确定返回的字段名
         if (url.includes("/avatars")) {
           return { avatars: data.data };

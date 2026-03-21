@@ -15,19 +15,14 @@ import {
   TextInput,
   TouchableWithoutFeedback,
 } from "react-native";
-import {
-  Text,
-  ActivityIndicator,
-  IconButton,
-  Icon,
-  Button,
-} from "react-native-paper";
+import { Text, ActivityIndicator, IconButton, Icon } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { ChatStackParamList } from "../../navigation/types";
 import { useTheme } from "../../context/ThemeContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { chatService } from "../../services/chatService";
+import AppHeader from "../../components/AppHeader";
 
 interface ChatSession {
   id: string;
@@ -45,8 +40,6 @@ export default function HomeScreen() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [menuVisible, setMenuVisible] = useState(false);
-  const [shareModalVisible, setShareModalVisible] = useState(false);
-  const [shareCode, setShareCode] = useState("");
 
   useEffect(() => {
     loadSessions();
@@ -63,15 +56,17 @@ export default function HomeScreen() {
     try {
       setLoading(true);
       const response = await chatService.getSessions();
-      const mappedSessions: ChatSession[] = ((response as any).items || (response as any).sessions || []).map(
-        (s: any) => ({
-          id: s.id,
-          title: s.title || "新对话",
-          lastMessage: s.lastMessage || "",
-          updatedAt: s.updatedAt || new Date().toISOString(),
-          type: s.type || "agent_self",
-        }),
-      );
+      const mappedSessions: ChatSession[] = (
+        (response as any).items ||
+        (response as any).sessions ||
+        []
+      ).map((s: any) => ({
+        id: s.id,
+        title: s.title || "新对话",
+        lastMessage: s.lastMessage || "",
+        updatedAt: s.updatedAt || new Date().toISOString(),
+        type: s.type || "agent_self",
+      }));
       setSessions(mappedSessions);
     } catch (error) {
       console.error("Failed to load sessions:", error);
@@ -103,7 +98,8 @@ export default function HomeScreen() {
     }
   };
 
-  const handleDelete = (sessionId: string, title: string) => {    Alert.alert("删除对话", `确定要删除与 ${title} 的对话吗？`, [
+  const handleDelete = (sessionId: string, title: string) => {
+    Alert.alert("删除对话", `确定要删除与 ${title} 的对话吗？`, [
       { text: "取消", style: "cancel" },
       {
         text: "删除",
@@ -128,8 +124,15 @@ export default function HomeScreen() {
   const handleMyPastAgent = async () => {
     setMenuVisible(false);
     try {
-      const session = await chatService.createSession("agent" as any, "我的过去", "me_agent");
-      navigation.navigate("Chat", { sessionId: (session as any)?.id, type: "agent_self" });
+      const session = await chatService.createSession(
+        "agent" as any,
+        "我的过去",
+        "me_agent",
+      );
+      navigation.navigate("Chat", {
+        sessionId: (session as any)?.id,
+        type: "agent_self",
+      });
     } catch (error) {
       Alert.alert("错误", "创建我的过去对话失败");
     }
@@ -138,26 +141,15 @@ export default function HomeScreen() {
   const handleLifePlanner = async () => {
     setMenuVisible(false);
     try {
-      const session = await chatService.createSession("agent" as any, "人生规划", "life_planner");
+      const session = await chatService.createSession(
+        "agent" as any,
+        "人生规划",
+        "life_planner",
+      );
       navigation.navigate("Chat", { sessionId: (session as any)?.id });
     } catch (error) {
       Alert.alert("错误", "创建人生规划对话失败");
     }
-  };
-
-  const handleAddOtherAgent = () => {
-    setMenuVisible(false);
-    setShareModalVisible(true);
-  };
-
-  const handleConfirmShareCode = () => {
-    if (!shareCode.trim()) {
-      Alert.alert("错误", "请输入分享码");
-      return;
-    }
-    setShareModalVisible(false);
-    setShareCode("");
-    Alert.alert("提示", "功能开发中");
   };
 
   const getAvatarLabel = (type: string, title: string) => {
@@ -166,17 +158,23 @@ export default function HomeScreen() {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case "personal": return "account";
-      case "agent_other": return "robot-excited";
-      default: return "robot";           // agent_self
+      case "personal":
+        return "account";
+      case "agent_other":
+        return "robot-excited";
+      default:
+        return "robot"; // agent_self
     }
   };
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "personal": return colors.success;
-      case "agent_other": return colors.info;
-      default: return colors.primary;
+      case "personal":
+        return colors.success;
+      case "agent_other":
+        return colors.info;
+      default:
+        return colors.primary;
     }
   };
 
@@ -189,13 +187,24 @@ export default function HomeScreen() {
       onLongPress={() => handleDelete(item.id, item.title)}
     >
       <View style={styles.avatarWrapper}>
-        <View style={[styles.avatar, { backgroundColor: getTypeColor(item.type) }]}>
+        <View
+          style={[styles.avatar, { backgroundColor: getTypeColor(item.type) }]}
+        >
           <Text style={[styles.avatarText, { color: colors.textOnPrimary }]}>
             {getAvatarLabel(item.type, item.title)}
           </Text>
         </View>
-        <View style={[styles.typeBadge, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Icon source={getTypeIcon(item.type)} size={11} color={getTypeColor(item.type)} />
+        <View
+          style={[
+            styles.typeBadge,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+          ]}
+        >
+          <Icon
+            source={getTypeIcon(item.type)}
+            size={11}
+            color={getTypeColor(item.type)}
+          />
         </View>
       </View>
       <View style={styles.chatInfo}>
@@ -222,17 +231,7 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { backgroundColor: colors.primary, paddingTop: insets.top + 8 }]}>
-        <Text style={[styles.title, { color: colors.textOnPrimary }]}>
-          对话
-        </Text>
-        <IconButton
-          icon="plus"
-          iconColor={colors.textOnPrimary}
-          size={24}
-          onPress={handleAddChat}
-        />
-      </View>
+      <AppHeader title="对话" rightIcon="plus" onRightPress={handleAddChat} />
 
       {/* WeChat-style 下拉菜单 */}
       <Modal
@@ -264,68 +263,6 @@ export default function HomeScreen() {
                 >
                   <Text style={styles.menuText}>人生导师</Text>
                 </TouchableOpacity>
-                <View style={styles.menuDivider} />
-                {/* 添加Agent */}
-                <TouchableOpacity
-                  style={styles.menuItem}
-                  onPress={handleAddOtherAgent}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.menuText}>添加Agent</Text>
-                </TouchableOpacity>
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
-
-      {/* 分享码输入 Modal */}
-      <Modal
-        visible={shareModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShareModalVisible(false)}
-      >
-        <TouchableWithoutFeedback onPress={() => setShareModalVisible(false)}>
-          <View style={styles.shareOverlay}>
-            <TouchableWithoutFeedback>
-              <View style={[styles.shareBox, { backgroundColor: colors.surface }]}>
-                <Text style={[styles.shareTitle, { color: colors.textPrimary }]}>
-                  添加其他人的Agent
-                </Text>
-                <Text style={[styles.shareSubtitle, { color: colors.textSecondary }]}>
-                  输入对方的Agent分享码
-                </Text>
-                <TextInput
-                  style={[styles.shareInput, {
-                    backgroundColor: colors.background,
-                    color: colors.textPrimary,
-                    borderColor: colors.border,
-                  }]}
-                  placeholder="输入分享码"
-                  placeholderTextColor={colors.textTertiary}
-                  value={shareCode}
-                  onChangeText={setShareCode}
-                  autoCapitalize="characters"
-                  autoCorrect={false}
-                  maxLength={6}
-                />
-                <View style={styles.shareButtons}>
-                  <Button
-                    mode="outlined"
-                    onPress={() => { setShareModalVisible(false); setShareCode(""); }}
-                    style={styles.shareBtn}
-                  >
-                    取消
-                  </Button>
-                  <Button
-                    mode="contained"
-                    onPress={handleConfirmShareCode}
-                    style={styles.shareBtn}
-                  >
-                    添加
-                  </Button>
-                </View>
               </View>
             </TouchableWithoutFeedback>
           </View>
@@ -363,17 +300,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
   },
   loading: {
     flex: 1,
@@ -493,13 +419,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.15)",
     marginHorizontal: 16,
   },
-  // 分享码 Modal
-  shareOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
+
   shareBox: {
     width: "85%",
     borderRadius: 16,

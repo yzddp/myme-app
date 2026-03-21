@@ -1,38 +1,28 @@
-/**
- * MyMe App - A2A Chat Screen
- * A2A对话页面 - PRD v3.0
- */
-
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  View,
-  StyleSheet,
+  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
-  Alert,
+  StyleSheet,
+  View,
 } from "react-native";
 import {
+  Button,
+  Chip,
+  HelperText,
+  IconButton,
+  SegmentedButtons,
   Text,
   TextInput,
-  IconButton,
-  ActivityIndicator,
-  SegmentedButtons,
 } from "react-native-paper";
-import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { ProfileStackParamList } from "../../navigation/types";
 import { useTheme } from "../../context/ThemeContext";
 import { a2aService } from "../../services/a2aService";
-
-type SenderType = "user" | "agent";
-
-interface Message {
-  id: string;
-  content: string;
-  sender: SenderType;
-  createdAt: string;
-}
+import type { A2AMessage, A2ARelation, A2ASenderType } from "../../types/a2a";
+import { KNOWLEDGE_MODULE_DESCRIPTIONS } from "../../types/knowledge";
 
 type A2AChatRouteProp = RouteProp<ProfileStackParamList, "A2AChat">;
 
@@ -44,43 +34,105 @@ export default function A2AChatScreen() {
   const { relationId } = route.params;
 
   const [inputText, setInputText] = useState("");
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<A2AMessage[]>([]);
+  const [relation, setRelation] = useState<A2ARelation | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [senderType, setSenderType] = useState<SenderType>("user");
-  const [peerName, setPeerName] = useState("");
-  const flatListRef = useRef<FlatList>(null);
+  const [senderType, setSenderType] = useState<A2ASenderType>("user");
+  const flatListRef = useRef<FlatList<A2AMessage>>(null);
 
   useEffect(() => {
-    loadMessages();
-    loadRelation();
+    void loadPage();
   }, [relationId]);
 
-  const loadRelation = async () => {
-    try {
-      const relation = await a2aService.getRelation(relationId);
-      setPeerName(
-        (relation as any).peerName || (relation as any).peer?.name || "伙伴",
-      );
-    } catch (error) {
-      console.error("Failed to load relation:", error);
-    }
-  };
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.background },
+        hero: {
+          backgroundColor: colors.primary,
+          paddingTop: 48,
+          paddingBottom: 18,
+          paddingHorizontal: 12,
+        },
+        heroTop: { flexDirection: "row", alignItems: "center" },
+        heroText: { flex: 1, paddingHorizontal: 4 },
+        heroTitle: {
+          fontSize: 22,
+          fontWeight: "800",
+          color: colors.textOnPrimary,
+        },
+        heroSubtitle: {
+          fontSize: 13,
+          color: colors.textOnPrimary,
+          opacity: 0.84,
+          marginTop: 4,
+        },
+        banner: {
+          margin: 12,
+          marginBottom: 0,
+          padding: 14,
+          borderRadius: 18,
+          backgroundColor: colors.surface,
+        },
+        bannerTitle: { fontSize: 15, fontWeight: "700", marginBottom: 6 },
+        bannerText: { fontSize: 13, lineHeight: 19 },
+        chipRow: {
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: 8,
+          marginTop: 10,
+        },
+        senderBar: {
+          marginHorizontal: 12,
+          marginTop: 12,
+          padding: 14,
+          borderRadius: 18,
+          backgroundColor: colors.surface,
+        },
+        senderLabel: { fontSize: 14, fontWeight: "700", marginBottom: 10 },
+        senderHint: { fontSize: 12, marginTop: 8 },
+        loading: { flex: 1, justifyContent: "center", alignItems: "center" },
+        messageList: { padding: 16, paddingBottom: 24 },
+        messageWrap: { marginBottom: 14, maxWidth: "85%" },
+        myMessage: { alignSelf: "flex-end" },
+        peerMessage: { alignSelf: "flex-start" },
+        bubble: { padding: 12, borderRadius: 18 },
+        myBubble: {
+          backgroundColor: colors.userBubble,
+          borderBottomRightRadius: 6,
+        },
+        peerBubble: {
+          backgroundColor: colors.agentBubble,
+          borderBottomLeftRadius: 6,
+        },
+        messageText: { fontSize: 15, lineHeight: 22 },
+        meta: { marginTop: 6, flexDirection: "row", gap: 6 },
+        metaText: { fontSize: 11 },
+        composer: {
+          padding: 12,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
+          backgroundColor: colors.surface,
+        },
+        input: { backgroundColor: colors.background, marginBottom: 10 },
+      }),
+    [colors],
+  );
 
-  const loadMessages = async () => {
+  const loadPage = async () => {
     try {
       setLoading(true);
-      const response = await a2aService.getMessages(relationId);
-      const loadedMessages: Message[] =
-        (response as any).messages?.map((m: any) => ({
-          id: m.id,
-          content: m.content,
-          sender: m.senderType || m.sender,
-          createdAt: m.createdAt,
-        })) || [];
-      setMessages(loadedMessages);
-    } catch (error) {
-      console.error("Failed to load messages:", error);
+      const [relationResult, messagesResult] = await Promise.all([
+        a2aService.getRelation(relationId),
+        a2aService.getMessages(relationId),
+      ]);
+      setRelation(relationResult);
+      setMessages(messagesResult.messages ?? []);
+    } catch (error: any) {
+      Alert.alert("错误", error.message || "关系不存在或消息加载失败", [
+        { text: "返回列表", onPress: () => navigation.goBack() },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -90,7 +142,8 @@ export default function A2AChatScreen() {
     flatListRef.current?.scrollToEnd({ animated: true });
   };
 
-  const handleSwitchSenderType = async (type: SenderType) => {
+  const handleSwitchSenderType = async (value: string) => {
+    const type = value as A2ASenderType;
     try {
       await a2aService.switchSenderType(relationId, type);
       setSenderType(type);
@@ -101,226 +154,181 @@ export default function A2AChatScreen() {
   };
 
   const sendMessage = async () => {
-    if (!inputText.trim() || sending) return;
+    if (
+      !inputText.trim() ||
+      sending ||
+      !relation ||
+      relation.status === "blocked"
+    ) {
+      return;
+    }
 
-    const message: Message = {
-      id: Date.now().toString(),
+    const optimisticMessage: A2AMessage = {
+      id: `temp-${Date.now()}`,
+      relationId,
+      senderId: "self",
+      senderType,
+      senderName: senderType === "agent" ? relation.selfAvatar.name : "本人",
       content: inputText.trim(),
-      sender: senderType,
       createdAt: new Date().toISOString(),
     };
 
-    setMessages((prev) => [...prev, message]);
+    setMessages((prev) => [...prev, optimisticMessage]);
     setInputText("");
     setSending(true);
-
-    setTimeout(() => scrollToBottom(), 50);
+    setTimeout(scrollToBottom, 50);
 
     try {
-      await a2aService.sendMessage(relationId, message.content, message.sender);
+      await a2aService.sendMessage(
+        relationId,
+        optimisticMessage.content,
+        senderType,
+      );
+      const refreshed = await a2aService.getMessages(relationId);
+      setMessages(refreshed.messages ?? []);
     } catch (error) {
-      console.error("Failed to send message:", error);
+      setMessages((prev) =>
+        prev.filter((message) => message.id !== optimisticMessage.id),
+      );
       Alert.alert("错误", "消息发送失败");
-      setMessages((prev) => prev.filter((m) => m.id !== message.id));
     } finally {
       setSending(false);
     }
   };
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        container: {
-          flex: 1,
-          backgroundColor: colors.background,
-        },
-        header: {
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          backgroundColor: colors.primary,
-          paddingTop: 48,
-          paddingBottom: 12,
-          paddingHorizontal: 8,
-        },
-        headerCenter: {
-          flex: 1,
-          alignItems: "center",
-        },
-        headerTitle: {
-          fontSize: 18,
-          fontWeight: "bold",
-          color: colors.textOnPrimary,
-        },
-        headerSubtitle: {
-          fontSize: 12,
-          color: colors.textOnPrimary,
-          opacity: 0.8,
-        },
-        senderTypeBar: {
-          flexDirection: "row",
-          alignItems: "center",
-          paddingHorizontal: 16,
-          paddingVertical: 8,
-          backgroundColor: colors.surface,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.border,
-        },
-        senderTypeLabel: {
-          fontSize: 14,
-          color: colors.textSecondary,
-          marginRight: 12,
-        },
-        segmentedButtons: {
-          flex: 1,
-        },
-        loading: {
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-        },
-        messageList: {
-          padding: 16,
-          flexGrow: 1,
-        },
-        messageContainer: {
-          marginBottom: 12,
-          maxWidth: "85%",
-        },
-        userMessage: {
-          alignSelf: "flex-end",
-        },
-        agentMessage: {
-          alignSelf: "flex-start",
-        },
-        messageBubble: {
-          padding: 12,
-          borderRadius: 16,
-        },
-        userBubble: {
-          backgroundColor: colors.userBubble,
-          borderBottomRightRadius: 4,
-        },
-        agentBubble: {
-          backgroundColor: colors.agentBubble,
-          borderBottomLeftRadius: 4,
-        },
-        messageText: {
-          fontSize: 16,
-          lineHeight: 22,
-        },
-        userText: {
-          color: colors.userBubbleText,
-        },
-        agentText: {
-          color: colors.agentBubbleText,
-        },
-        messageMeta: {
-          flexDirection: "row",
-          alignItems: "center",
-          marginTop: 4,
-          marginHorizontal: 4,
-        },
-        senderLabel: {
-          fontSize: 11,
-          color: colors.primary,
-          fontWeight: "500",
-          marginRight: 6,
-        },
-        messageTime: {
-          fontSize: 11,
-          color: colors.textTertiary,
-        },
-        inputContainer: {
-          flexDirection: "row",
-          alignItems: "center",
-          padding: 12,
-          backgroundColor: colors.surface,
-          borderTopWidth: 1,
-          borderTopColor: colors.border,
-        },
-        input: {
-          flex: 1,
-          marginRight: 8,
-          maxHeight: 100,
-          backgroundColor: colors.background,
-        },
-      }),
-    [colors],
-  );
+  const renderMessage = ({ item }: { item: A2AMessage }) => {
+    const isMine = item.senderType === "user" || item.senderType === "agent";
+    const mineByCurrentUser =
+      item.senderName === "本人" || item.senderId === "self" || isMine;
 
-  const renderMessage = ({ item }: { item: Message }) => (
-    <View
-      style={[
-        styles.messageContainer,
-        item.sender === "user" ? styles.userMessage : styles.agentMessage,
-      ]}
-    >
+    return (
       <View
         style={[
-          styles.messageBubble,
-          item.sender === "user" ? styles.userBubble : styles.agentBubble,
+          styles.messageWrap,
+          mineByCurrentUser ? styles.myMessage : styles.peerMessage,
         ]}
       >
-        <Text
+        <View
           style={[
-            styles.messageText,
-            item.sender === "user" ? styles.userText : styles.agentText,
+            styles.bubble,
+            mineByCurrentUser ? styles.myBubble : styles.peerBubble,
           ]}
         >
-          {item.content}
-        </Text>
+          <Text
+            style={{
+              color: mineByCurrentUser
+                ? colors.userBubbleText
+                : colors.agentBubbleText,
+            }}
+          >
+            {item.content}
+          </Text>
+        </View>
+        <View style={styles.meta}>
+          <Text style={[styles.metaText, { color: colors.primary }]}>
+            {item.senderName || item.senderType}
+          </Text>
+          <Text style={[styles.metaText, { color: colors.textTertiary }]}>
+            {new Date(item.createdAt).toLocaleTimeString("zh-CN", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </Text>
+        </View>
       </View>
-      <View style={styles.messageMeta}>
-        <Text style={styles.senderLabel}>
-          {item.sender === "user" ? "我" : "Agent"}
-        </Text>
-        <Text style={styles.messageTime}>
-          {new Date(item.createdAt).toLocaleTimeString("zh-CN", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </Text>
-      </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={90}
+      keyboardVerticalOffset={88}
     >
-      <View style={styles.header}>
-        <IconButton
-          icon="arrow-left"
-          iconColor={colors.textOnPrimary}
-          size={24}
-          onPress={() => navigation.goBack()}
-        />
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>{peerName}</Text>
-          <Text style={styles.headerSubtitle}>A2A对话</Text>
+      <View style={styles.hero}>
+        <View style={styles.heroTop}>
+          <IconButton
+            icon="arrow-left"
+            iconColor={colors.textOnPrimary}
+            onPress={() => navigation.goBack()}
+          />
+          <View style={styles.heroText}>
+            <Text style={styles.heroTitle}>
+              {relation
+                ? `正在和 ${relation.counterpartAvatar.name} 对话`
+                : "A2A 对话"}
+            </Text>
+            <Text style={styles.heroSubtitle}>
+              {relation
+                ? `${relation.counterpartUser.nickname || relation.counterpartUser.username || "对方用户"} · 我方分身 ${relation.selfAvatar.name}`
+                : "加载关系上下文中"}
+            </Text>
+          </View>
+          <View style={{ width: 48 }} />
         </View>
-        <View style={{ width: 48 }} />
       </View>
 
-      <View style={styles.senderTypeBar}>
-        <Text style={styles.senderTypeLabel}>当前身份:</Text>
-        <SegmentedButtons
-          value={senderType}
-          onValueChange={(value) => handleSwitchSenderType(value as SenderType)}
-          buttons={[
-            { value: "user", label: "人工" },
-            { value: "agent", label: "Agent" },
-          ]}
-          style={styles.segmentedButtons}
-        />
-      </View>
+      {relation ? (
+        <>
+          <View style={styles.banner}>
+            <Text style={[styles.bannerTitle, { color: colors.textPrimary }]}>
+              该分身已授权的认知范围
+            </Text>
+            <Text style={[styles.bannerText, { color: colors.textSecondary }]}>
+              聊天页顶部只展示对方分身的权限边界，不再混入我方权限。
+            </Text>
+            <View style={styles.chipRow}>
+              {relation.counterpartAvatar.permissions.length > 0 ? (
+                relation.counterpartAvatar.permissions.map((module) => (
+                  <Chip key={module}>{module}</Chip>
+                ))
+              ) : (
+                <Text style={{ color: colors.textSecondary }}>
+                  未开放知识模块
+                </Text>
+              )}
+            </View>
+            {relation.counterpartAvatar.permissions.map((module) => (
+              <Text
+                key={module}
+                style={[
+                  styles.bannerText,
+                  { color: colors.textSecondary, marginTop: 6 },
+                ]}
+              >
+                {module} · {KNOWLEDGE_MODULE_DESCRIPTIONS[module]}
+              </Text>
+            ))}
+          </View>
+
+          <View style={styles.senderBar}>
+            <Text style={[styles.senderLabel, { color: colors.textPrimary }]}>
+              发送身份
+            </Text>
+            <SegmentedButtons
+              value={senderType}
+              onValueChange={handleSwitchSenderType}
+              buttons={[
+                { value: "user", label: "本人发送" },
+                { value: "agent", label: "由我的分身代发" },
+              ]}
+            />
+            <HelperText
+              type="info"
+              visible
+              style={[styles.senderHint, { color: colors.textSecondary }]}
+            >
+              {senderType === "agent"
+                ? "将由你的当前分身身份代你表达"
+                : "将以你本人的口吻直接发送"}
+            </HelperText>
+          </View>
+        </>
+      ) : null}
 
       {loading ? (
         <View style={styles.loading}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={{ color: colors.textSecondary }}>消息加载中...</Text>
         </View>
       ) : (
         <FlatList
@@ -329,32 +337,40 @@ export default function A2AChatScreen() {
           renderItem={renderMessage}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.messageList}
-          onContentSizeChange={() => scrollToBottom()}
+          onContentSizeChange={scrollToBottom}
         />
       )}
 
-      <View style={styles.inputContainer}>
-        <TextInput
-          value={inputText}
-          onChangeText={setInputText}
-          placeholder={`以${senderType === "user" ? "人工" : "Agent"}身份发送消息...`}
-          style={styles.input}
-          mode="outlined"
-          outlineColor={colors.border}
-          activeOutlineColor={colors.primary}
-          multiline
-          maxLength={500}
-          editable={!sending}
-        />
-        <IconButton
-          icon="send"
-          mode="contained"
-          containerColor={colors.primary}
-          iconColor={colors.textOnPrimary}
-          size={24}
-          onPress={sendMessage}
-          disabled={!inputText.trim() || sending}
-        />
+      <View style={styles.composer}>
+        {relation?.status === "blocked" ? (
+          <Text style={{ color: colors.textSecondary }}>
+            该关系已被屏蔽，仅可查看历史消息。
+          </Text>
+        ) : (
+          <>
+            <TextInput
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder={
+                senderType === "agent"
+                  ? "由我的分身代发消息..."
+                  : "本人发送消息..."
+              }
+              mode="outlined"
+              style={styles.input}
+              multiline
+              editable={!sending}
+            />
+            <Button
+              mode="contained"
+              onPress={sendMessage}
+              loading={sending}
+              disabled={sending || !inputText.trim()}
+            >
+              发送
+            </Button>
+          </>
+        )}
       </View>
     </KeyboardAvoidingView>
   );

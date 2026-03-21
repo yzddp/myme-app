@@ -3,9 +3,11 @@
  * 分身服务 - 处理分身CRUD和对话功能
  */
 
-import { apiService } from './api';
+import { apiService } from "./api";
 import type {
   Avatar,
+  AvatarPresetCategory,
+  AvatarPresetListResponse,
   AvatarScenario,
   AvatarStatus,
   CreateAvatarRequest,
@@ -14,14 +16,15 @@ import type {
   AvatarChatRequest,
   AvatarChatResponse,
   ShareCodeResponse,
-} from '../types/avatar';
-import { KnowledgeModule } from '../types/knowledge';
+} from "../types/avatar";
+import { KnowledgeModule } from "../types/knowledge";
 
 // API路径
 const AVATAR_ENDPOINTS = {
-  base: '/avatars',
-  chat: '/chat',
-  shareCode: '/share-code',
+  base: "/avatars",
+  chat: "/chat",
+  shareCode: "/share-code",
+  presets: "/presets",
 };
 
 /**
@@ -33,7 +36,48 @@ export const avatarService = {
    * @returns 分身列表
    */
   async getAvatars(): Promise<AvatarListResponse> {
-    return apiService.get<AvatarListResponse>(AVATAR_ENDPOINTS.base);
+    const response = await apiService.get<AvatarListResponse>(
+      AVATAR_ENDPOINTS.base,
+    );
+    return {
+      avatars: response.avatars ?? [],
+      total: response.total ?? response.avatars?.length ?? 0,
+    };
+  },
+
+  async getPresets(): Promise<AvatarPresetCategory[]> {
+    const response = await apiService.get<
+      | AvatarPresetListResponse
+      | AvatarPresetCategory[]
+      | { avatars?: AvatarPresetCategory[] }
+    >(`${AVATAR_ENDPOINTS.base}${AVATAR_ENDPOINTS.presets}`);
+
+    console.log("[avatarService.getPresets] raw response:", response);
+
+    if (Array.isArray(response)) {
+      console.log(
+        "[avatarService.getPresets] normalized from array, count:",
+        response.length,
+      );
+      return response;
+    }
+
+    const avatarWrapped = response as { avatars?: AvatarPresetCategory[] };
+    if (Array.isArray(avatarWrapped.avatars)) {
+      console.log(
+        "[avatarService.getPresets] normalized from avatars wrapper, count:",
+        avatarWrapped.avatars.length,
+      );
+      return avatarWrapped.avatars;
+    }
+
+    const categoryWrapped = response as AvatarPresetListResponse;
+    const categories = categoryWrapped.categories ?? [];
+    console.log(
+      "[avatarService.getPresets] normalized from categories wrapper, count:",
+      categories.length,
+    );
+    return categories;
   },
 
   /**
@@ -82,7 +126,7 @@ export const avatarService = {
     const request: AvatarChatRequest = { message };
     return apiService.post<AvatarChatResponse>(
       `${AVATAR_ENDPOINTS.base}/${id}${AVATAR_ENDPOINTS.chat}`,
-      request
+      request,
     );
   },
 
@@ -93,7 +137,7 @@ export const avatarService = {
    */
   async getShareCode(id: string): Promise<ShareCodeResponse> {
     return apiService.get<ShareCodeResponse>(
-      `${AVATAR_ENDPOINTS.base}/${id}${AVATAR_ENDPOINTS.shareCode}`
+      `${AVATAR_ENDPOINTS.base}/${id}${AVATAR_ENDPOINTS.shareCode}`,
     );
   },
 
@@ -105,7 +149,7 @@ export const avatarService = {
    */
   async updatePermissions(
     id: string,
-    permissions: KnowledgeModule[]
+    permissions: KnowledgeModule[],
   ): Promise<Avatar> {
     return this.update(id, { permissions });
   },

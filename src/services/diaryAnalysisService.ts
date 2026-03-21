@@ -3,7 +3,7 @@
  * 日记分析服务 - 处理日记AI分析功能
  */
 
-import { apiService } from './api';
+import { apiService } from "./api";
 import type {
   DiaryAnalysisReport,
   DiaryPeriodType,
@@ -11,7 +11,9 @@ import type {
   DiaryAnalysisSettings,
   UpdateAnalysisSettingsRequest,
   AnalysisReportListResponse,
-} from '../types/diary';
+  DiaryAnalyzeSettingsV2,
+  UpdateDiaryAnalyzeSettingsRequest,
+} from "../types/diary";
 
 // 定义响应类型
 interface LatestAnalysisResponse {
@@ -29,12 +31,66 @@ interface AnalysisSettingsResponse {
   settings: DiaryAnalysisSettings;
 }
 
+interface AnalysisSettingsV2Response {
+  settings: DiaryAnalyzeSettingsV2;
+}
+
+function normalizeAnalyzeSettings(raw: any): DiaryAnalyzeSettingsV2 {
+  if (raw?.daily || raw?.weekly || raw?.monthly || raw?.yearly) {
+    return {
+      daily: {
+        enabled: Boolean(raw.daily?.enabled),
+        time: raw.daily?.time ?? null,
+      },
+      weekly: {
+        enabled: Boolean(raw.weekly?.enabled),
+        day: raw.weekly?.day ?? "sun",
+        time: raw.weekly?.time ?? null,
+      },
+      monthly: {
+        enabled: Boolean(raw.monthly?.enabled),
+        day: raw.monthly?.day ?? "1",
+        time: raw.monthly?.time ?? null,
+      },
+      yearly: {
+        enabled: Boolean(raw.yearly?.enabled),
+        month: raw.yearly?.month ?? 1,
+        day: raw.yearly?.day ?? "1",
+        time: raw.yearly?.time ?? null,
+      },
+    };
+  }
+
+  return {
+    daily: {
+      enabled: Boolean(raw?.autoAnalyze),
+      time: raw?.notificationTime ?? "21:00",
+    },
+    weekly: {
+      enabled: Boolean(raw?.notificationEnabled),
+      day: raw?.notificationDay ?? "sun",
+      time: raw?.notificationTime ?? "21:00",
+    },
+    monthly: {
+      enabled: false,
+      day: "1",
+      time: "21:00",
+    },
+    yearly: {
+      enabled: false,
+      month: 1,
+      day: "1",
+      time: "21:00",
+    },
+  };
+}
+
 // API路径
 const DIARY_ANALYSIS_ENDPOINTS = {
-  analyze: '/diary/analyze',
-  latest: '/diary/analyze/latest',
-  history: '/diary/analyze/history',
-  settings: '/diary/analyze/settings',
+  analyze: "/diary/analyze",
+  latest: "/diary/analyze/latest",
+  history: "/diary/analyze/history",
+  settings: "/diary/analyze/settings",
 };
 
 /**
@@ -46,10 +102,12 @@ export const diaryAnalysisService = {
    * @param request 分析请求参数
    * @returns 分析报告
    */
-  async analyze(request: GenerateAnalysisRequest): Promise<DiaryAnalysisReport> {
+  async analyze(
+    request: GenerateAnalysisRequest,
+  ): Promise<DiaryAnalysisReport> {
     return apiService.post<DiaryAnalysisReport>(
       DIARY_ANALYSIS_ENDPOINTS.analyze,
-      request
+      request,
     );
   },
 
@@ -58,7 +116,9 @@ export const diaryAnalysisService = {
    * @param periodType 周期类型
    * @returns 分析报告
    */
-  async analyzeByPeriod(periodType: DiaryPeriodType): Promise<DiaryAnalysisReport> {
+  async analyzeByPeriod(
+    periodType: DiaryPeriodType,
+  ): Promise<DiaryAnalysisReport> {
     const request: GenerateAnalysisRequest = { periodType };
     return this.analyze(request);
   },
@@ -68,10 +128,12 @@ export const diaryAnalysisService = {
    * @param periodType 周期类型（可选）
    * @returns 最新报告
    */
-  async getLatest(periodType?: DiaryPeriodType): Promise<LatestAnalysisResponse> {
+  async getLatest(
+    periodType?: DiaryPeriodType,
+  ): Promise<LatestAnalysisResponse> {
     return apiService.get<LatestAnalysisResponse>(
       DIARY_ANALYSIS_ENDPOINTS.latest,
-      { periodType }
+      { periodType },
     );
   },
 
@@ -83,11 +145,11 @@ export const diaryAnalysisService = {
    */
   async getHistory(
     page?: number,
-    limit?: number
+    limit?: number,
   ): Promise<AnalysisHistoryResponse> {
     return apiService.get<AnalysisHistoryResponse>(
       DIARY_ANALYSIS_ENDPOINTS.history,
-      { page, limit }
+      { page, limit },
     );
   },
 
@@ -98,7 +160,7 @@ export const diaryAnalysisService = {
    */
   async getReport(reportId: string): Promise<DiaryAnalysisReport> {
     return apiService.get<DiaryAnalysisReport>(
-      `${DIARY_ANALYSIS_ENDPOINTS.analyze}/${reportId}`
+      `${DIARY_ANALYSIS_ENDPOINTS.analyze}/${reportId}`,
     );
   },
 
@@ -116,8 +178,17 @@ export const diaryAnalysisService = {
    */
   async getSettings(): Promise<AnalysisSettingsResponse> {
     return apiService.get<AnalysisSettingsResponse>(
-      DIARY_ANALYSIS_ENDPOINTS.settings
+      DIARY_ANALYSIS_ENDPOINTS.settings,
     );
+  },
+
+  async getAnalyzeSettings(): Promise<AnalysisSettingsV2Response> {
+    const response = await apiService.get<any>(
+      DIARY_ANALYSIS_ENDPOINTS.settings,
+    );
+    return {
+      settings: normalizeAnalyzeSettings(response.settings ?? response),
+    };
   },
 
   /**
@@ -126,12 +197,24 @@ export const diaryAnalysisService = {
    * @returns 更新后的设置
    */
   async updateSettings(
-    settings: UpdateAnalysisSettingsRequest
+    settings: UpdateAnalysisSettingsRequest,
   ): Promise<AnalysisSettingsResponse> {
     return apiService.put<AnalysisSettingsResponse>(
       DIARY_ANALYSIS_ENDPOINTS.settings,
-      settings
+      settings,
     );
+  },
+
+  async updateAnalyzeSettings(
+    settings: UpdateDiaryAnalyzeSettingsRequest,
+  ): Promise<AnalysisSettingsV2Response> {
+    const response = await apiService.put<any>(
+      DIARY_ANALYSIS_ENDPOINTS.settings,
+      settings,
+    );
+    return {
+      settings: normalizeAnalyzeSettings(response.settings ?? response),
+    };
   },
 
   /**
@@ -139,7 +222,9 @@ export const diaryAnalysisService = {
    * @param autoAnalyze 是否自动分析
    * @returns 更新后的设置
    */
-  async setAutoAnalyze(autoAnalyze: boolean): Promise<AnalysisSettingsResponse> {
+  async setAutoAnalyze(
+    autoAnalyze: boolean,
+  ): Promise<AnalysisSettingsResponse> {
     return this.updateSettings({ autoAnalyze });
   },
 
@@ -149,7 +234,7 @@ export const diaryAnalysisService = {
    * @returns 更新后的设置
    */
   async setNotification(
-    notificationEnabled: boolean
+    notificationEnabled: boolean,
   ): Promise<AnalysisSettingsResponse> {
     return this.updateSettings({ notificationEnabled });
   },
@@ -160,7 +245,7 @@ export const diaryAnalysisService = {
    * @returns 更新后的设置
    */
   async setDefaultPeriod(
-    periodType: DiaryPeriodType
+    periodType: DiaryPeriodType,
   ): Promise<AnalysisSettingsResponse> {
     return this.updateSettings({ defaultPeriodType: periodType });
   },

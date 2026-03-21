@@ -34,6 +34,7 @@ import DiaryListScreen from "../screens/diary/DiaryListScreen";
 import DiaryEditScreen from "../screens/diary/DiaryEditScreen";
 import DiaryReportScreen from "../screens/diary/DiaryReportScreen";
 import DiaryAnalysisScreen from "../screens/diary/DiaryAnalysisScreen";
+import DiaryAnalysisSettingsScreen from "../screens/diary/DiaryAnalysisSettingsScreen";
 import ProfileScreen from "../screens/settings/ProfileScreen";
 import ProfileEditScreen from "../screens/settings/ProfileEditScreen";
 import UserAvatarScreen from "../screens/settings/UserAvatarScreen";
@@ -77,7 +78,10 @@ function ChatStackNavigator() {
     <ChatStack.Navigator screenOptions={{ headerShown: false }}>
       <ChatStack.Screen name="ChatList" component={HomeScreen} />
       <ChatStack.Screen name="Chat" component={AgentChatScreen} />
-      <ChatStack.Screen name="AddConversation" component={AddConversationScreen} />
+      <ChatStack.Screen
+        name="AddConversation"
+        component={AddConversationScreen}
+      />
     </ChatStack.Navigator>
   );
 }
@@ -104,6 +108,10 @@ function DiaryStackNavigator() {
       <DiaryStack.Screen name="DiaryEdit" component={DiaryEditScreen} />
       <DiaryStack.Screen name="DiaryReport" component={DiaryReportScreen} />
       <DiaryStack.Screen name="DiaryAnalysis" component={DiaryAnalysisScreen} />
+      <DiaryStack.Screen
+        name="DiaryAnalysisSettings"
+        component={DiaryAnalysisSettingsScreen}
+      />
     </DiaryStack.Navigator>
   );
 }
@@ -126,7 +134,10 @@ function ProfileStackNavigator() {
       <ProfileStack.Screen name="A2AList" component={A2ARelationListScreen} />
       <ProfileStack.Screen name="A2AChat" component={A2AChatScreen} />
       <ProfileStack.Screen name="A2AAdd" component={A2AAddScreen} />
-      <ProfileStack.Screen name="KnowledgeDetail" component={KnowledgeDetailScreen} />
+      <ProfileStack.Screen
+        name="KnowledgeDetail"
+        component={KnowledgeDetailScreen}
+      />
       <ProfileStack.Screen name="Permissions" component={PermissionsScreen} />
       <ProfileStack.Screen name="Theme" component={ThemeScreen} />
       <ProfileStack.Screen
@@ -145,7 +156,10 @@ function AuthNavigator() {
     <AuthStack.Navigator screenOptions={{ headerShown: false }}>
       <AuthStack.Screen name="Login" component={LoginScreen} />
       <AuthStack.Screen name="Register" component={RegisterScreen} />
-      <AuthStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <AuthStack.Screen
+        name="ForgotPassword"
+        component={ForgotPasswordScreen}
+      />
     </AuthStack.Navigator>
   );
 }

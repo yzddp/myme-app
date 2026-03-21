@@ -5,7 +5,14 @@
 
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, ScrollView, RefreshControl } from "react-native";
-import { Text, Card, Button, SegmentedButtons, Chip, IconButton } from "react-native-paper";
+import {
+  Text,
+  Card,
+  Button,
+  SegmentedButtons,
+  Chip,
+  IconButton,
+} from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
 import { useDiaryStore } from "../../store/diaryStore";
@@ -222,7 +229,12 @@ export const DiaryAnalysisScreen: React.FC<DiaryAnalysisScreenProps> = ({
             <Text style={styles.title}>日记分析</Text>
             <Text style={styles.subtitle}>了解你的内心世界</Text>
           </View>
-          <View style={{ width: 48 }} />
+          <IconButton
+            icon="tune-variant"
+            iconColor={colors.primary}
+            size={22}
+            onPress={() => navigation?.navigate?.("DiaryAnalysisSettings")}
+          />
         </View>
 
         {/* 周期选择 */}
@@ -234,6 +246,7 @@ export const DiaryAnalysisScreen: React.FC<DiaryAnalysisScreenProps> = ({
               { value: "daily", label: "日" },
               { value: "weekly", label: "周" },
               { value: "monthly", label: "月" },
+              { value: "yearly", label: "年" },
             ]}
             style={styles.segmentedButtons}
           />

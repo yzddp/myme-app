@@ -127,8 +127,27 @@ export const useChatStore = create<ChatState>((set, get) => ({
       
       // 更新消息列表
       const currentMessages = get().messages;
+      
+      const userMessage: Message = {
+        id: Date.now().toString() + '_user',
+        sessionId: currentSession?.id || response.sessionId,
+        sender: 'user',
+        content,
+        tokensUsed: 0,
+        createdAt: new Date().toISOString()
+      };
+      
+      const agentMessage: Message = {
+        id: Date.now().toString() + '_agent',
+        sessionId: response.sessionId,
+        sender: 'agent',
+        content: response.agentReply,
+        tokensUsed: response.tokensUsed,
+        createdAt: new Date().toISOString()
+      };
+      
       set({ 
-        messages: [...currentMessages, response.message, response.reply],
+        messages: [...currentMessages, userMessage, agentMessage],
         isSending: false 
       });
       

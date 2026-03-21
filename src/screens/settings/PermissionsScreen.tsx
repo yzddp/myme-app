@@ -6,10 +6,11 @@
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, FlatList, RefreshControl } from "react-native";
 import { Text, Card, Button, IconButton, Divider } from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
 import { useA2AStore } from "../../store/a2aStore";
 import type { A2ARelation } from "../../types/a2a";
+import AppHeader from "../../components/AppHeader";
 
 interface PermissionsScreenProps {
   navigation?: any;
@@ -19,6 +20,7 @@ export const PermissionsScreen: React.FC<PermissionsScreenProps> = ({
   navigation,
 }) => {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
 
   const { relations, loadRelations, deleteRelation } = useA2AStore();
@@ -38,20 +40,13 @@ export const PermissionsScreen: React.FC<PermissionsScreenProps> = ({
   };
 
   return (
-    <SafeAreaView style={styles(colors).container}>
-      <View style={styles(colors).header}>
-        <IconButton
-          icon="arrow-left"
-          iconColor={colors.primary}
-          size={24}
-          onPress={() => navigation?.goBack()}
-          style={{ marginLeft: -8 }}
-        />
-        <View>
-          <Text style={styles(colors).title}>授权管理</Text>
-          <Text style={styles(colors).subtitle}>管理已授权的A2A关系</Text>
-        </View>
-      </View>
+    <View style={styles(colors).container}>
+      <AppHeader
+        title="授权管理"
+        subtitle="管理已授权的A2A关系"
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation?.goBack()}
+      />
 
       <FlatList
         data={relations}
@@ -60,7 +55,11 @@ export const PermissionsScreen: React.FC<PermissionsScreenProps> = ({
           <Card style={styles(colors).card}>
             <Card.Content>
               <View style={styles(colors).cardHeader}>
-                <Text style={styles(colors).peerName}>Peer User</Text>
+                <Text style={styles(colors).peerName}>
+                  {item.counterpartUser.nickname ||
+                    item.counterpartUser.username ||
+                    item.counterpartAvatar.name}
+                </Text>
                 <Text
                   style={[
                     styles(colors).status,
@@ -72,13 +71,24 @@ export const PermissionsScreen: React.FC<PermissionsScreenProps> = ({
                   {item.status === "active" ? "活跃" : "已阻止"}
                 </Text>
               </View>
+              <Text style={styles(colors).summaryText}>
+                对方分身：{item.counterpartAvatar.name} · 我方分身：
+                {item.selfAvatar.name}
+              </Text>
               <Text style={styles(colors).permissionsLabel}>已授权模块:</Text>
               <View style={styles(colors).permissionsContainer}>
-                {item.permissions.map((p: string, idx: number) => (
-                  <Text key={idx} style={styles(colors).permissionChip}>
-                    {p}
+                {item.counterpartAvatar.permissions.map(
+                  (p: string, idx: number) => (
+                    <Text key={idx} style={styles(colors).permissionChip}>
+                      {p}
+                    </Text>
+                  ),
+                )}
+                {item.counterpartAvatar.permissions.length === 0 ? (
+                  <Text style={styles(colors).emptyPermissionText}>
+                    未开放知识模块
                   </Text>
-                ))}
+                ) : null}
               </View>
             </Card.Content>
             <Card.Actions>
@@ -97,7 +107,7 @@ export const PermissionsScreen: React.FC<PermissionsScreenProps> = ({
           </View>
         }
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -106,22 +116,6 @@ const styles = (colors: any) =>
     container: {
       flex: 1,
       backgroundColor: colors.background,
-    },
-    header: {
-      padding: 12,
-      paddingLeft: 8,
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    title: {
-      fontSize: 24,
-      fontWeight: "bold",
-      color: colors.textPrimary,
-    },
-    subtitle: {
-      fontSize: 14,
-      color: colors.textSecondary,
-      marginTop: 4,
     },
     card: {
       marginHorizontal: 16,
@@ -155,10 +149,21 @@ const styles = (colors: any) =>
       fontSize: 13,
       color: colors.textSecondary,
       marginBottom: 8,
+      marginTop: 10,
+    },
+    summaryText: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      marginBottom: 8,
+      lineHeight: 18,
     },
     permissionsContainer: {
       flexDirection: "row",
       flexWrap: "wrap",
+    },
+    emptyPermissionText: {
+      fontSize: 12,
+      color: colors.textTertiary,
     },
     permissionChip: {
       backgroundColor: colors.primaryLight + "30",

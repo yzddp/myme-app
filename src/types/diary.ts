@@ -7,7 +7,12 @@
 export type DiarySentiment = "positive" | "neutral" | "negative";
 
 // 分析周期类型
-export type DiaryPeriodType = "daily" | "weekly" | "monthly" | "custom";
+export type DiaryPeriodType =
+  | "daily"
+  | "weekly"
+  | "monthly"
+  | "yearly"
+  | "custom";
 
 // 通知日期类型
 export type NotificationDay =
@@ -141,6 +146,29 @@ export interface DiaryAnalysisSettings {
   autoAnalyze: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export type DiaryScheduleDay = NotificationDay | "last" | number | `${number}`;
+
+export interface DiaryPeriodSetting {
+  enabled: boolean;
+  time: string | null;
+  day?: DiaryScheduleDay | null;
+  month?: number | null;
+}
+
+export interface DiaryAnalyzeSettingsV2 {
+  daily: DiaryPeriodSetting;
+  weekly: DiaryPeriodSetting;
+  monthly: DiaryPeriodSetting;
+  yearly: DiaryPeriodSetting;
+}
+
+export interface UpdateDiaryAnalyzeSettingsRequest {
+  daily?: DiaryPeriodSetting;
+  weekly?: DiaryPeriodSetting;
+  monthly?: DiaryPeriodSetting;
+  yearly?: DiaryPeriodSetting;
 }
 
 // 更新分析设置请求

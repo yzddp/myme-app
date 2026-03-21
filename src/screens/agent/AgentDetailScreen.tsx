@@ -24,6 +24,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AgentStackParamList } from "../../navigation/types";
 import { useTheme } from "../../context/ThemeContext";
 import { avatarService } from "../../services/avatarService";
+import AppHeader from "../../components/AppHeader";
 
 const SCENARIO_LABELS: Record<string, string> = {
   interview: "面试",
@@ -63,22 +64,6 @@ export default function AgentDetailScreen() {
         container: {
           flex: 1,
           backgroundColor: colors.background,
-        },
-        header: {
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          backgroundColor: colors.primary,
-          paddingTop: 48,
-          paddingBottom: 8,
-          paddingHorizontal: 8,
-        },
-        title: {
-          fontSize: 20,
-          fontWeight: "bold",
-          color: colors.textOnPrimary,
-          flex: 1,
-          textAlign: "center",
         },
         loading: {
           flex: 1,
@@ -269,21 +254,14 @@ export default function AgentDetailScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <IconButton
-          icon="arrow-left"
-          iconColor={colors.textOnPrimary}
-          size={24}
-          onPress={() => navigation.goBack()}
-        />
-        <Text style={styles.title}>Agent详情</Text>
-        <IconButton
-          icon="pencil"
-          iconColor={colors.textOnPrimary}
-          size={24}
-          onPress={handleEdit}
-        />
-      </View>
+      <AppHeader
+        title="Agent详情"
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation.goBack()}
+        rightIcon="pencil"
+        onRightPress={handleEdit}
+        centerTitle
+      />
 
       <View style={styles.content}>
         <View style={styles.avatarSection}>

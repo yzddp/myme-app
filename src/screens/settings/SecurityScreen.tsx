@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Text,
   TextInput,
@@ -24,8 +25,10 @@ import { useNavigation } from "@react-navigation/native";
 import { userService } from "../../services/userService";
 import { useAuthStore } from "../../store/authStore";
 import { useTheme } from "../../context/ThemeContext";
+import AppHeader from "../../components/AppHeader";
 
 export default function SecurityScreen() {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { colors } = useTheme();
   const { user, logout } = useAuthStore();
@@ -95,18 +98,12 @@ export default function SecurityScreen() {
       style={[styles.container, { backgroundColor: colors.background }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <View style={[styles.header, { backgroundColor: colors.primary }]}>
-        <IconButton
-          icon="arrow-left"
-          iconColor={colors.textOnPrimary}
-          size={24}
-          onPress={() => navigation.goBack()}
-        />
-        <Text style={[styles.title, { color: colors.textOnPrimary }]}>
-          账号安全
-        </Text>
-        <View style={{ width: 48 }} />
-      </View>
+      <AppHeader
+        title="账号安全"
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation.goBack()}
+        centerTitle
+      />
 
       <ScrollView style={styles.content}>
         <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
@@ -218,14 +215,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingTop: 48,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
   },
   content: {

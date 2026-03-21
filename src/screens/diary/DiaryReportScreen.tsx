@@ -5,6 +5,7 @@
 
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Text,
   Card,
@@ -20,10 +21,12 @@ import type { DiaryStackParamList } from "../../navigation/types";
 import { useTheme } from "../../context/ThemeContext";
 import { diaryService } from "../../services/diaryService";
 import type { DiaryAnalysisReport } from "../../types/diary";
+import AppHeader from "../../components/AppHeader";
 
 type ReportRouteProp = RouteProp<DiaryStackParamList, "DiaryReport">;
 
 export default function DiaryReportScreen() {
+  const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const route = useRoute<ReportRouteProp>();
   const navigation =
@@ -89,15 +92,7 @@ export default function DiaryReportScreen() {
       backgroundColor: colors.background,
     },
     header: {
-      paddingTop: 48,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
       backgroundColor: colors.primary,
-    },
-    headerTitleContainer: {
-      flex: 1,
-      alignItems: "center",
     },
     title: {
       fontSize: 28,
@@ -212,9 +207,7 @@ export default function DiaryReportScreen() {
   if (!report) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>{getPeriodLabel(periodType)}</Text>
-        </View>
+        <AppHeader title={getPeriodLabel(periodType)} />
         <View style={styles.empty}>
           <Text style={styles.emptyText}>报告加载失败</Text>
         </View>
@@ -224,19 +217,12 @@ export default function DiaryReportScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <IconButton
-          icon="arrow-left"
-          iconColor={colors.textOnPrimary}
-          size={24}
-          onPress={() => navigation.goBack()}
-        />
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.title}>{getPeriodLabel(periodType)}</Text>
-          <Text style={styles.subtitle}>{formatDateRange()}</Text>
-        </View>
-        <View style={{ width: 48 }} />
-      </View>
+      <AppHeader
+        title={getPeriodLabel(periodType)}
+        subtitle={formatDateRange()}
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation.goBack()}
+      />
 
       <ScrollView style={styles.content}>
         {report.summary && (

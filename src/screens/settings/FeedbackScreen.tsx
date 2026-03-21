@@ -19,6 +19,7 @@ import type { ProfileStackParamList } from "../../navigation/types";
 import { useTheme } from "../../context/ThemeContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { userService } from "../../services/userService";
+import AppHeader from "../../components/AppHeader";
 
 type NavigationProp = NativeStackNavigationProp<ProfileStackParamList>;
 
@@ -65,23 +66,6 @@ export default function FeedbackScreen() {
     container: {
       flex: 1,
       backgroundColor: colors.background,
-    },
-    header: {
-      backgroundColor: colors.primary,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingHorizontal: 8,
-      paddingVertical: 12,
-      paddingTop: insets.top + 8,
-    },
-    headerTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
-      color: colors.textOnPrimary,
-    },
-    placeholder: {
-      width: 40,
     },
     content: {
       padding: 20,
@@ -132,16 +116,12 @@ export default function FeedbackScreen() {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <View style={styles.header}>
-        <IconButton
-          icon="arrow-left"
-          iconColor={colors.textOnPrimary}
-          size={24}
-          onPress={() => navigation.goBack()}
-        />
-        <Text style={styles.headerTitle}>意见反馈</Text>
-        <View style={styles.placeholder} />
-      </View>
+      <AppHeader
+        title="意见反馈"
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation.goBack()}
+        centerTitle
+      />
 
       <ScrollView keyboardShouldPersistTaps="handled">
         <View style={styles.content}>

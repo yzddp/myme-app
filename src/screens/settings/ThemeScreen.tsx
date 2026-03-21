@@ -18,6 +18,7 @@ import type { ProfileStackParamList } from "../../navigation/types";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuthStore } from "../../store/authStore";
 import { userService } from "../../services/userService";
+import AppHeader from "../../components/AppHeader";
 
 type ThemeMode = "warm" | "cool" | "dark";
 
@@ -123,18 +124,12 @@ export default function ThemeScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { backgroundColor: colors.primary }]}>
-        <IconButton
-          icon="arrow-left"
-          iconColor={colors.textOnPrimary}
-          size={24}
-          onPress={() => navigation.goBack()}
-        />
-        <Text style={[styles.title, { color: colors.textOnPrimary }]}>
-          外观设置
-        </Text>
-        <View style={{ width: 48 }} />
-      </View>
+      <AppHeader
+        title="外观设置"
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation.goBack()}
+        centerTitle
+      />
 
       <ScrollView style={styles.content}>
         <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
@@ -159,14 +154,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingTop: 48,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
   },
   content: {

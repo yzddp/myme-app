@@ -4,7 +4,14 @@
  */
 
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { View, StyleSheet, FlatList, RefreshControl, Alert, TouchableOpacity } from "react-native";
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  RefreshControl,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
 import {
   Text,
   Card,
@@ -19,6 +26,8 @@ import { useTheme } from "../../context/ThemeContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { diaryService } from "../../services/diaryService";
 import type { DiaryEntry, DiaryAnalysisReport } from "../../types/diary";
+import AppHeader from "../../components/AppHeader";
+import { confirmAction } from "../../utils/confirm";
 
 type TabType = "diary" | "weekly" | "monthly" | "yearly";
 
@@ -156,22 +165,25 @@ export default function DiaryListScreen() {
     return today.toISOString().split("T")[0];
   };
 
-  const handleDeleteDiary = (id: string) => {
-    Alert.alert("删除日记", "确定要永久删除这篇日记吗？", [
-      { text: "取消", style: "cancel" },
-      {
-        text: "删除",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await diaryService.delete(id);
-            setDiaries((prev) => prev.filter((d) => d.id !== id));
-          } catch (error) {
-            Alert.alert("错误", "删除失败，请重试");
-          }
-        },
-      },
-    ]);
+  const handleDeleteDiary = async (id: string) => {
+    const confirmed = await confirmAction({
+      title: "删除日记",
+      message: "确定要永久删除这篇日记吗？",
+      confirmText: "删除",
+      cancelText: "取消",
+      destructive: true,
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await diaryService.delete(id);
+      setDiaries((prev) => prev.filter((d) => d.id !== id));
+    } catch (error) {
+      Alert.alert("错误", "删除失败，请重试");
+    }
   };
 
   const renderDiaryItem = ({ item }: { item: DiaryItem }) => (
@@ -185,17 +197,16 @@ export default function DiaryListScreen() {
           <Text style={[styles.date, { color: colors.textTertiary }]}>
             {new Date(item.createdAt).toLocaleDateString("zh-CN")}
           </Text>
-          <TouchableOpacity
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            onPress={() => handleDeleteDiary(item.id)}
-          >
-            <IconButton
-              icon="delete-outline"
-              size={18}
-              iconColor={colors.error}
-              style={{ margin: 0 }}
-            />
-          </TouchableOpacity>
+          <IconButton
+            icon="delete-outline"
+            size={18}
+            iconColor={colors.error}
+            style={{ margin: 0 }}
+            onPress={(event) => {
+              event.stopPropagation?.();
+              handleDeleteDiary(item.id);
+            }}
+          />
         </View>
         <Text
           numberOfLines={3}
@@ -303,23 +314,9 @@ export default function DiaryListScreen() {
           flex: 1,
           backgroundColor: colors.background,
         },
-        header: {
-          padding: 20,
-          paddingTop: insets.top + 12,
-          paddingBottom: 0,
-          backgroundColor: colors.primary,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        },
-        title: {
-          fontSize: 28,
-          fontWeight: "bold",
-          color: colors.textOnPrimary,
-        },
         tabContainer: {
           padding: 16,
-          backgroundColor: colors.primary,
+          backgroundColor: colors.background,
           paddingBottom: 8,
         },
         segmentedButtons: {
@@ -378,16 +375,19 @@ export default function DiaryListScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>日记</Text>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          {activeTab === "diary" && (
-            <IconButton
-              icon="plus"
-              iconColor={colors.textOnPrimary}
-              size={24}
-              disabled={fabLoading}
-              onPress={async () => {
+      <AppHeader
+        title="日记"
+        leftIcon="cog-outline"
+        onLeftPress={() => navigation.navigate("DiaryAnalysisSettings")}
+        subtitle={
+          activeTab === "diary"
+            ? "写日记与查看归档"
+            : "查看周期报告与调整分析节奏"
+        }
+        rightIcon={activeTab === "diary" ? "plus" : undefined}
+        onRightPress={
+          activeTab === "diary"
+            ? async () => {
                 setFabLoading(true);
                 try {
                   navigation.navigate("DiaryEdit", {
@@ -396,11 +396,10 @@ export default function DiaryListScreen() {
                 } finally {
                   setFabLoading(false);
                 }
-              }}
-            />
-          )}
-        </View>
-      </View>
+              }
+            : undefined
+        }
+      />
 
       <View style={styles.tabContainer}>
         <SegmentedButtons

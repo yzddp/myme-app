@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, ScrollView, Alert } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Text,
   Card,
@@ -15,8 +16,10 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { userService, NotificationSettings } from "../../services/userService";
 import { useTheme } from "../../context/ThemeContext";
+import AppHeader from "../../components/AppHeader";
 
 export default function NotificationSettingsScreen() {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { colors } = useTheme();
   const [loading, setLoading] = useState(true);
@@ -75,18 +78,12 @@ export default function NotificationSettingsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { backgroundColor: colors.primary }]}>
-        <IconButton
-          icon="arrow-left"
-          iconColor={colors.textOnPrimary}
-          size={24}
-          onPress={() => navigation.goBack()}
-        />
-        <Text style={[styles.title, { color: colors.textOnPrimary }]}>
-          通知设置
-        </Text>
-        <View style={{ width: 48 }} />
-      </View>
+      <AppHeader
+        title="通知设置"
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation.goBack()}
+        centerTitle
+      />
 
       <ScrollView style={styles.content}>
         <Card style={[styles.card, { backgroundColor: colors.surface }]}>
@@ -157,14 +154,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingTop: 48,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
   },
   content: {

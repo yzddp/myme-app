@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useKnowledgeStore } from "../../store/knowledgeStore";
 import { KNOWLEDGE_MODULE_DESCRIPTIONS } from "../../types/knowledge";
 import type { KnowledgeItem } from "../../types/knowledge";
+import AppHeader from "../../components/AppHeader";
 
 type DetailRouteProp = RouteProp<ProfileStackParamList, "KnowledgeDetail">;
 type NavigationProp = NativeStackNavigationProp<ProfileStackParamList>;
@@ -51,28 +52,23 @@ export default function KnowledgeDetailScreen() {
     );
   }
 
-  const moduleLabel =
-    KNOWLEDGE_MODULE_DESCRIPTIONS[item.module] || item.module;
+  const moduleLabel = KNOWLEDGE_MODULE_DESCRIPTIONS[item.module] || item.module;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { backgroundColor: colors.primary, paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
-          <Icon source="arrow-left" size={24} color={colors.textOnPrimary} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.textOnPrimary }]}>
-          知识详情
-        </Text>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("KnowledgeEdit", { id })}
-          style={styles.iconBtn}
-        >
-          <Icon source="pencil" size={22} color={colors.textOnPrimary} />
-        </TouchableOpacity>
-      </View>
+      <AppHeader
+        title="知识详情"
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation.goBack()}
+        rightIcon="pencil"
+        onRightPress={() => navigation.navigate("KnowledgeEdit", { id })}
+        centerTitle
+      />
 
       <ScrollView contentContainerStyle={styles.body}>
-        <Chip style={[styles.chip, { backgroundColor: colors.primaryLight + "30" }]}>
+        <Chip
+          style={[styles.chip, { backgroundColor: colors.primaryLight + "30" }]}
+        >
           {moduleLabel}
         </Chip>
         <Card style={[styles.card, { backgroundColor: colors.surface }]}>
@@ -93,16 +89,6 @@ export default function KnowledgeDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 8,
-    paddingBottom: 12,
-    paddingTop: 48,
-  },
-  iconBtn: { width: 40, padding: 8 },
-  headerTitle: { fontSize: 18, fontWeight: "bold" },
   body: { padding: 20, gap: 16 },
   chip: { alignSelf: "flex-start", marginBottom: 4 },
   card: { marginBottom: 4 },

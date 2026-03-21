@@ -19,11 +19,16 @@ import type { ChatStackParamList } from "../../navigation/types";
 import { useTheme } from "../../context/ThemeContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { chatService } from "../../services/chatService";
+import AppHeader from "../../components/AppHeader";
 
 type NavigationProp = NativeStackNavigationProp<ChatStackParamList>;
 
 const SYSTEM_AGENTS = [
-  { id: "me_agent", name: "我的过去Agent", description: "引导用户回忆过去，沉淀M1-M10数据" },
+  {
+    id: "me_agent",
+    name: "我的过去Agent",
+    description: "引导用户回忆过去，沉淀M1-M10数据",
+  },
   { id: "career_agent", name: "职业顾问", description: "职业发展相关问题" },
   { id: "emotion_agent", name: "情感顾问", description: "情感关系相关问题" },
 ];
@@ -35,9 +40,12 @@ export default function AddConversationScreen() {
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [shareCode, setShareCode] = useState("");
 
-  const handleSelectAgent = async (agent: typeof SYSTEM_AGENTS[0]) => {
+  const handleSelectAgent = async (agent: (typeof SYSTEM_AGENTS)[0]) => {
     try {
-      const session = await chatService.createSession("agent" as any, agent.name);
+      const session = await chatService.createSession(
+        "agent" as any,
+        agent.name,
+      );
       navigation.replace("Chat", { sessionId: (session as any)?.id });
     } catch (error) {
       Alert.alert("错误", "创建对话失败");
@@ -56,15 +64,12 @@ export default function AddConversationScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { backgroundColor: colors.primary, paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
-          <Icon source="arrow-left" size={24} color={colors.textOnPrimary} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.textOnPrimary }]}>
-          新建对话
-        </Text>
-        <View style={styles.back} />
-      </View>
+      <AppHeader
+        title="新建对话"
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation.goBack()}
+        centerTitle
+      />
 
       <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
         系统Agent
@@ -80,14 +85,23 @@ export default function AddConversationScreen() {
             <List.Icon {...props} icon="robot" color={colors.primary} />
           )}
           right={(props) => (
-            <List.Icon {...props} icon="chevron-right" color={colors.textTertiary} />
+            <List.Icon
+              {...props}
+              icon="chevron-right"
+              color={colors.textTertiary}
+            />
           )}
           onPress={() => handleSelectAgent(agent)}
           style={{ backgroundColor: colors.surface, marginBottom: 1 }}
         />
       ))}
 
-      <Text style={[styles.sectionLabel, { color: colors.textSecondary, marginTop: 8 }]}>
+      <Text
+        style={[
+          styles.sectionLabel,
+          { color: colors.textSecondary, marginTop: 8 },
+        ]}
+      >
         其他人的Agent
       </Text>
       <List.Item
@@ -99,7 +113,11 @@ export default function AddConversationScreen() {
           <List.Icon {...props} icon="qrcode-scan" color={colors.primary} />
         )}
         right={(props) => (
-          <List.Icon {...props} icon="chevron-right" color={colors.textTertiary} />
+          <List.Icon
+            {...props}
+            icon="chevron-right"
+            color={colors.textTertiary}
+          />
         )}
         onPress={() => setShareModalVisible(true)}
         style={{ backgroundColor: colors.surface }}
@@ -112,11 +130,15 @@ export default function AddConversationScreen() {
         onRequestClose={() => setShareModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+          <View
+            style={[styles.modalContent, { backgroundColor: colors.surface }]}
+          >
             <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
               添加其他人的Agent
             </Text>
-            <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
+            <Text
+              style={[styles.modalSubtitle, { color: colors.textSecondary }]}
+            >
               请输入对方的分享码
             </Text>
             <TextInput
@@ -138,7 +160,10 @@ export default function AddConversationScreen() {
             <View style={styles.modalButtons}>
               <Button
                 mode="outlined"
-                onPress={() => { setShareModalVisible(false); setShareCode(""); }}
+                onPress={() => {
+                  setShareModalVisible(false);
+                  setShareCode("");
+                }}
                 style={styles.modalButton}
               >
                 取消
@@ -160,15 +185,6 @@ export default function AddConversationScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 8,
-    paddingVertical: 12,
-  },
-  back: { width: 40, padding: 8 },
-  headerTitle: { fontSize: 18, fontWeight: "bold" },
   sectionLabel: { fontSize: 13, paddingHorizontal: 16, paddingVertical: 12 },
   modalOverlay: {
     flex: 1,

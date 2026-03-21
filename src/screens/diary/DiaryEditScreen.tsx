@@ -22,6 +22,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { diaryService } from "../../services/diaryService";
 import type { DiaryStackParamList } from "../../navigation/types";
 import DatePickerInput from "../../components/DatePickerInput";
+import AppHeader from "../../components/AppHeader";
 
 type EditRouteProp = RouteProp<DiaryStackParamList, "DiaryEdit">;
 type NavigationProp = NativeStackNavigationProp<DiaryStackParamList>;
@@ -140,21 +141,6 @@ export default function DiaryEditScreen() {
     },
     header: {
       backgroundColor: colors.primary,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingHorizontal: 8,
-      paddingVertical: 12,
-      paddingTop: insets.top + 8,
-    },
-    backButton: {
-      padding: 8,
-      width: 40,
-    },
-    headerTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
-      color: colors.textOnPrimary,
     },
     scrollView: {
       flex: 1,
@@ -227,13 +213,12 @@ export default function DiaryEditScreen() {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <Icon source="arrow-left" size={24} color={colors.textOnPrimary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>写日记</Text>
-        <View style={styles.backButton} />
-      </View>
+      <AppHeader
+        title="写日记"
+        leftIcon="arrow-left"
+        onLeftPress={handleBack}
+        centerTitle
+      />
 
       <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
         <View style={styles.form}>

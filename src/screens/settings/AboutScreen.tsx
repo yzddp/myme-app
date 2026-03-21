@@ -5,6 +5,7 @@
 
 import React from "react";
 import { View, StyleSheet, ScrollView, Linking } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Text,
   Card,
@@ -17,8 +18,10 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { ProfileStackParamList } from "../../navigation/types";
 import { useTheme } from "../../context/ThemeContext";
+import AppHeader from "../../components/AppHeader";
 
 export default function AboutScreen() {
+  const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const navigation =
     useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
@@ -29,13 +32,10 @@ export default function AboutScreen() {
       backgroundColor: colors.background,
     },
     header: {
-      paddingTop: 48,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
+      backgroundColor: colors.primary,
     },
     title: {
-      fontSize: 24,
+      fontSize: 28,
       fontWeight: "bold",
       color: colors.textOnPrimary,
     },
@@ -109,16 +109,12 @@ export default function AboutScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <IconButton
-          icon="arrow-left"
-          iconColor={colors.textOnPrimary}
-          size={24}
-          onPress={() => navigation.goBack()}
-        />
-        <Text style={styles.title}>关于 MyMe</Text>
-        <View style={{ width: 48 }} />
-      </View>
+      <AppHeader
+        title="关于 MyMe"
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation.goBack()}
+        centerTitle
+      />
 
       <View style={styles.content}>
         <View style={styles.logoSection}>

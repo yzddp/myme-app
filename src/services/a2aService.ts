@@ -3,7 +3,7 @@
  * A2A服务 - 处理A2A关系和聊天功能
  */
 
-import { apiService } from './api';
+import { apiService } from "./api";
 import type {
   A2ARelation,
   A2ASenderType,
@@ -14,14 +14,23 @@ import type {
   A2AMessageListResponse,
   SwitchSenderTypeRequest,
   CurrentSenderResponse,
-} from '../types/a2a';
-import { KnowledgeModule } from '../types/knowledge';
+  LegacyA2ARelation,
+  ShareCodePreview,
+} from "../types/a2a";
+import {
+  normalizeA2ARelation,
+  normalizeShareCodePreview,
+} from "./a2aNormalizer";
 
 // API路径
 const A2A_ENDPOINTS = {
-  base: '/a2a',
-  messages: '/messages',
-  switch: '/switch',
+  base: "/a2a",
+  messages: "/messages",
+  switch: "/switch",
+};
+
+const AVATAR_ENDPOINTS = {
+  validateShareCode: "/avatars/validate-share-code",
 };
 
 /**
@@ -33,7 +42,21 @@ export const a2aService = {
    * @returns 关系列表
    */
   async getRelations(): Promise<A2ARelationListResponse> {
-    return apiService.get<A2ARelationListResponse>(A2A_ENDPOINTS.base);
+    const response = await apiService.get<
+      A2ARelationListResponse | { relations?: LegacyA2ARelation[] }
+    >(A2A_ENDPOINTS.base);
+    const typedResponse = response as A2ARelationListResponse & {
+      relations?: LegacyA2ARelation[];
+      total?: number;
+    };
+    const relations = (typedResponse.relations ?? []).map((relation) =>
+      normalizeA2ARelation(relation as LegacyA2ARelation),
+    );
+
+    return {
+      relations,
+      total: typedResponse.total ?? relations.length,
+    };
   },
 
   /**
@@ -42,21 +65,38 @@ export const a2aService = {
    * @returns 关系详情
    */
   async getRelation(id: string): Promise<A2ARelation> {
-    return apiService.get<A2ARelation>(`${A2A_ENDPOINTS.base}/${id}`);
+    const response = await apiService.get<A2ARelation | LegacyA2ARelation>(
+      `${A2A_ENDPOINTS.base}/${id}`,
+    );
+    return normalizeA2ARelation(response as LegacyA2ARelation);
   },
 
   /**
    * 创建A2A关系（通过分享码）
    * @param shareCode 分享码
-   * @param permissions 授权的模块
+   * @param peerAvatarId 我方分身ID
    * @returns 创建的关系
    */
   async createRelation(
     shareCode: string,
-    permissions: KnowledgeModule[]
+    peerAvatarId: string,
   ): Promise<A2ARelation> {
-    const request: CreateA2ARelationRequest = { shareCode, permissions };
-    return apiService.post<A2ARelation>(A2A_ENDPOINTS.base, request);
+    const request: CreateA2ARelationRequest = { shareCode, peerAvatarId };
+    const response = await apiService.post<A2ARelation | LegacyA2ARelation>(
+      A2A_ENDPOINTS.base,
+      request,
+    );
+    return normalizeA2ARelation(response as LegacyA2ARelation);
+  },
+
+  async validateShareCode(shareCode: string): Promise<ShareCodePreview> {
+    const response = await apiService.get<any>(
+      AVATAR_ENDPOINTS.validateShareCode,
+      {
+        shareCode,
+      },
+    );
+    return normalizeShareCodePreview(response);
   },
 
   /**
@@ -67,12 +107,13 @@ export const a2aService = {
    */
   async updateRelation(
     id: string,
-    data: UpdateA2ARelationRequest
+    data: UpdateA2ARelationRequest,
   ): Promise<A2ARelation> {
-    return apiService.put<A2ARelation>(
+    const response = await apiService.put<A2ARelation | LegacyA2ARelation>(
       `${A2A_ENDPOINTS.base}/${id}`,
-      data
+      data,
     );
+    return normalizeA2ARelation(response as LegacyA2ARelation);
   },
 
   /**
@@ -93,12 +134,12 @@ export const a2aService = {
   async sendMessage(
     relationId: string,
     content: string,
-    senderType?: A2ASenderType
+    senderType?: A2ASenderType,
   ): Promise<A2AMessageListResponse> {
     const request: SendA2AMessageRequest = { content, senderType };
     return apiService.post<A2AMessageListResponse>(
       `${A2A_ENDPOINTS.base}/${relationId}${A2A_ENDPOINTS.messages}`,
-      request
+      request,
     );
   },
 
@@ -112,11 +153,11 @@ export const a2aService = {
   async getMessages(
     relationId: string,
     page?: number,
-    limit?: number
+    limit?: number,
   ): Promise<A2AMessageListResponse> {
     return apiService.get<A2AMessageListResponse>(
       `${A2A_ENDPOINTS.base}/${relationId}${A2A_ENDPOINTS.messages}`,
-      { page, limit }
+      { page, limit },
     );
   },
 
@@ -128,26 +169,13 @@ export const a2aService = {
    */
   async switchSenderType(
     relationId: string,
-    senderType: A2ASenderType
+    senderType: A2ASenderType,
   ): Promise<CurrentSenderResponse> {
     const request: SwitchSenderTypeRequest = { senderType };
     return apiService.post<CurrentSenderResponse>(
       `${A2A_ENDPOINTS.base}/${relationId}${A2A_ENDPOINTS.switch}`,
-      request
+      request,
     );
-  },
-
-  /**
-   * 更新关系权限
-   * @param id 关系ID
-   * @param permissions 新的权限列表
-   * @returns 更新后的关系
-   */
-  async updatePermissions(
-    id: string,
-    permissions: KnowledgeModule[]
-  ): Promise<A2ARelation> {
-    return this.updateRelation(id, { permissions });
   },
 
   /**
@@ -157,7 +185,7 @@ export const a2aService = {
    * @returns 更新后的关系
    */
   async setBlocked(id: string, blocked: boolean): Promise<A2ARelation> {
-    const status = blocked ? 'blocked' : 'active';
+    const status = blocked ? "blocked" : "active";
     return this.updateRelation(id, { status });
   },
 };

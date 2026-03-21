@@ -8,12 +8,14 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Text } from "react-native-paper";
 import { useTheme } from "../../context/ThemeContext";
+import AppHeader from "../../components/AppHeader";
 
 export default function MarketScreen() {
   const { colors } = useTheme();
 
   return (
     <View style={styles(colors).container}>
+      <AppHeader title="市场" />
       <View style={styles(colors).content}>
         <Text style={styles(colors).title}>即将推出</Text>
         <Text style={styles(colors).subtitle}>基于您的M1-M10数据</Text>

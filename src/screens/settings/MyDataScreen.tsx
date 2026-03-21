@@ -12,6 +12,7 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text, Card, ActivityIndicator, IconButton } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -19,6 +20,7 @@ import type { ProfileStackParamList } from "../../navigation/types";
 import { useTheme } from "../../context/ThemeContext";
 import { knowledgeService } from "../../services/knowledgeService";
 import type { KnowledgeModule } from "../../types/knowledge";
+import AppHeader from "../../components/AppHeader";
 
 const MODULES = [
   { id: "M1", name: "个人信息与背景", description: "身份锚点" },
@@ -39,6 +41,7 @@ interface ModuleStats {
 }
 
 export default function MyDataScreen() {
+  const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const navigation =
     useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
@@ -54,15 +57,11 @@ export default function MyDataScreen() {
     },
     header: {
       backgroundColor: colors.primary,
-      paddingTop: 48,
-      paddingBottom: 16,
-      paddingHorizontal: 8,
     },
     title: {
-      fontSize: 24,
+      fontSize: 28,
       fontWeight: "bold",
       color: colors.textOnPrimary,
-      marginLeft: 48,
     },
     loading: {
       flex: 1,
@@ -213,15 +212,12 @@ export default function MyDataScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
-      <View style={styles.header}>
-        <IconButton
-          icon="arrow-left"
-          iconColor={colors.textOnPrimary}
-          size={24}
-          onPress={() => navigation.goBack()}
-        />
-        <Text style={styles.title}>我的过去</Text>
-      </View>
+      <AppHeader
+        title="我的数据"
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation.goBack()}
+        centerTitle
+      />
 
       <View style={styles.content}>
         <Card style={styles.totalCard}>
