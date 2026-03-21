@@ -21,10 +21,12 @@ import type { KnowledgeModule } from "../../types/knowledge";
 
 interface KnowledgeListScreenProps {
   navigation?: any;
+  route?: any;
 }
 
 export const KnowledgeListScreen: React.FC<KnowledgeListScreenProps> = ({
   navigation,
+  route,
 }) => {
   const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
@@ -43,6 +45,13 @@ export const KnowledgeListScreen: React.FC<KnowledgeListScreenProps> = ({
   useEffect(() => {
     loadModules();
   }, []);
+
+  useEffect(() => {
+    const defaultModule = route?.params?.module;
+    if (defaultModule) {
+      setCurrentModule(defaultModule as KnowledgeModule);
+    }
+  }, [route?.params?.module]);
 
   useEffect(() => {
     if (!navigation) return;
