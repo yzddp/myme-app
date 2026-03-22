@@ -15,9 +15,21 @@ import { useAuthStore } from "../store/authStore";
 
 // 从环境变量获取配置
 export const API_URL =
-  process.env.EXPO_PUBLIC_API_URL || "http://localhost:8080";
+  process.env.EXPO_PUBLIC_API_URL || "http://192.168.31.45:8080";
 const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION || "/api/v1";
 const TIMEOUT = 10000;
+
+export class ApiRequestError extends Error {
+  status?: number;
+  code?: string;
+
+  constructor(message: string, options?: { status?: number; code?: string }) {
+    super(message);
+    this.name = "ApiRequestError";
+    this.status = options?.status;
+    this.code = options?.code;
+  }
+}
 
 // 存储key
 const TOKEN_KEY = "token";
