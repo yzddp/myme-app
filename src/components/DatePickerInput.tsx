@@ -203,7 +203,7 @@ export default function DatePickerInput({
           style={styles.pickerScroll}
           showsVerticalScrollIndicator={false}
           snapToInterval={ITEM_HEIGHT}
-          snapToAlignment="start"
+          snapToAlignment="center"
           disableIntervalMomentum
           decelerationRate="fast"
           bounces={false}
@@ -239,15 +239,17 @@ export default function DatePickerInput({
         }}
         disabled={disabled}
       >
-        <TextInput
-          value={formatDateDisplay(value)}
-          editable={false}
-          mode="outlined"
-          style={[styles.input, disabled && { opacity: 0.5 }]}
-          placeholder={label}
-          placeholderTextColor={colors.textSecondary}
-          right={<TextInput.Icon icon="calendar-month-outline" />}
-        />
+        <View pointerEvents="none">
+          <TextInput
+            value={formatDateDisplay(value)}
+            editable={false}
+            mode="outlined"
+            style={[styles.input, disabled && { opacity: 0.5 }]}
+            placeholder={label}
+            placeholderTextColor={colors.textSecondary}
+            right={<TextInput.Icon icon="calendar-month-outline" />}
+          />
+        </View>
       </TouchableOpacity>
 
       <Portal>

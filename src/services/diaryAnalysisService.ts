@@ -42,13 +42,13 @@ function normalizeAnalyzeSettings(raw: any): DiaryAnalyzeSettingsV2 {
       },
       monthly: {
         enabled: Boolean(raw.monthly?.enabled),
-        day: raw.monthly?.day ?? "1",
+        day: raw.monthly?.day ?? 1,
         time: raw.monthly?.time ?? null,
       },
       yearly: {
         enabled: Boolean(raw.yearly?.enabled),
         month: raw.yearly?.month ?? 1,
-        day: raw.yearly?.day ?? "1",
+        day: raw.yearly?.day ?? 1,
         time: raw.yearly?.time ?? null,
       },
     };
@@ -58,7 +58,7 @@ function normalizeAnalyzeSettings(raw: any): DiaryAnalyzeSettingsV2 {
     daily: { enabled: false, time: "22:00" },
     weekly: { enabled: true, day: "sun", time: "20:00" },
     monthly: { enabled: true, day: "last", time: "20:00" },
-    yearly: { enabled: false, month: 12, day: "31", time: "20:00" },
+    yearly: { enabled: false, month: 12, day: 31, time: "20:00" },
   };
 }
 

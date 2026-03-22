@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { Button, Modal, Portal, Searchbar, Text } from "react-native-paper";
 import { useTheme } from "../context/ThemeContext";
 
@@ -71,16 +71,36 @@ export default function SimplePickerModal({
       minHeight: minListHeight || 260,
     },
     option: {
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: 10,
-      paddingHorizontal: 14,
-      paddingVertical: 10,
-      marginBottom: 2,
+      minHeight: 48,
+      paddingHorizontal: 4,
+      justifyContent: "center",
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.divider,
     },
     selected: {
-      borderColor: colors.primary,
-      backgroundColor: colors.primaryLight,
+      backgroundColor: "transparent",
+    },
+    optionRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 10,
+    },
+    optionLabel: {
+      flex: 1,
+      fontSize: 16,
+      color: colors.textPrimary,
+    },
+    optionLabelSelected: {
+      color: colors.primary,
+      fontWeight: "700",
+    },
+    optionCheck: {
+      fontSize: 16,
+      color: colors.primary,
+      fontWeight: "700",
     },
     footer: {
       flexDirection: "row",
@@ -107,19 +127,19 @@ export default function SimplePickerModal({
             {filteredOptions.map((option) => {
               const selected = option.value === selectedValue;
               return (
-                <Button
+                <Pressable
                   key={option.value}
-                  mode={selected ? "contained" : "outlined"}
                   style={[styles.option, selected && styles.selected]}
                   onPress={() => {
                     onSelect(option.value);
                     onDismiss();
                   }}
-                  contentStyle={{ justifyContent: "flex-start", minHeight: 44 }}
-                  labelStyle={{ color: selected ? colors.textOnPrimary : colors.textPrimary }}
                 >
-                  {option.label}
-                </Button>
+                  <View style={styles.optionRow}>
+                    <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]}>{option.label}</Text>
+                    {selected ? <Text style={styles.optionCheck}>✓</Text> : null}
+                  </View>
+                </Pressable>
               );
             })}
           </ScrollView>

@@ -33,6 +33,36 @@ const GENDER_OPTIONS = [
   { value: "other", label: "其他" },
 ];
 
+function PickerField({
+  label,
+  value,
+  style,
+  onPress,
+  disabled,
+}: {
+  label: string;
+  value: string;
+  style?: any;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <TouchableOpacity onPress={onPress} disabled={disabled} activeOpacity={0.85}>
+      <View pointerEvents="none">
+        <TextInput
+          label={label}
+          value={value}
+          mode="outlined"
+          style={style}
+          editable={false}
+          disabled={disabled}
+          right={<TextInput.Icon icon="chevron-down" />}
+        />
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 type NavigationProp = NativeStackNavigationProp<ProfileStackParamList>;
 
 export default function ProfileEditScreen() {
@@ -365,46 +395,42 @@ export default function ProfileEditScreen() {
             defaultPickerDate="2000-01-01"
           />
 
-          <TextInput
+          <PickerField
             label="语言"
             value={selectedLanguage}
-            mode="outlined"
             style={[styles.input, { marginTop: 16 }]}
-            editable={false}
-            right={<TextInput.Icon icon="chevron-down" onPress={() => setShowLanguagePicker(true)} />}
-            onPressIn={() => setShowLanguagePicker(true)}
+            onPress={() => setShowLanguagePicker(true)}
           />
 
-          <TextInput
+          <PickerField
             label="国家"
             value={regionCountryName}
-            mode="outlined"
             style={styles.input}
-            editable={false}
-            right={<TextInput.Icon icon="chevron-down" onPress={() => setShowCountryPicker(true)} />}
-            onPressIn={() => setShowCountryPicker(true)}
+            onPress={() => setShowCountryPicker(true)}
           />
 
-          <TextInput
+          <PickerField
             label="省/州"
             value={regionProvinceName}
-            mode="outlined"
             style={styles.input}
-            editable={false}
             disabled={!regionCountryCode}
-            right={<TextInput.Icon icon="chevron-down" onPress={() => regionCountryCode && setShowProvincePicker(true)} />}
-            onPressIn={() => regionCountryCode && setShowProvincePicker(true)}
+            onPress={() => {
+              if (regionCountryCode) {
+                setShowProvincePicker(true);
+              }
+            }}
           />
 
-          <TextInput
+          <PickerField
             label="城市"
             value={regionCityName}
-            mode="outlined"
             style={styles.input}
-            editable={false}
             disabled={!regionProvinceCode}
-            right={<TextInput.Icon icon="chevron-down" onPress={() => regionProvinceCode && setShowCityPicker(true)} />}
-            onPressIn={() => regionProvinceCode && setShowCityPicker(true)}
+            onPress={() => {
+              if (regionProvinceCode) {
+                setShowCityPicker(true);
+              }
+            }}
           />
 
           <TextInput

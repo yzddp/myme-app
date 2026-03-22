@@ -8,7 +8,7 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NavigationContainer } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { PaperProvider, MD3LightTheme } from "react-native-paper";
+import { PaperProvider, MD3DarkTheme, MD3LightTheme } from "react-native-paper";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StyleSheet } from "react-native";
 
@@ -78,18 +78,26 @@ const ThemedApp = () => {
     };
   }, [isAuthenticated, user, setUser, logout]);
 
+  const paperBaseTheme = themeMode === "dark" ? MD3DarkTheme : MD3LightTheme;
+
   const theme = {
-    ...MD3LightTheme,
+    ...paperBaseTheme,
     colors: {
-      ...MD3LightTheme.colors,
+      ...paperBaseTheme.colors,
       primary: colors.primary,
       secondary: colors.secondary,
       background: colors.background,
       surface: colors.surface,
+      surfaceVariant: colors.surfaceVariant,
       error: colors.error,
       onPrimary: colors.textOnPrimary,
+      onBackground: colors.textPrimary,
+      onSurface: colors.textPrimary,
+      onSurfaceVariant: colors.textSecondary,
       primaryContainer: colors.primaryLight,
       secondaryContainer: colors.secondaryLight,
+      outline: colors.border,
+      outlineVariant: colors.divider,
     },
   };
 

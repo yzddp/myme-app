@@ -135,7 +135,7 @@ export default function TimePickerModal({
         style={styles.list}
         showsVerticalScrollIndicator={false}
         snapToInterval={ITEM_HEIGHT}
-        snapToAlignment="start"
+        snapToAlignment="center"
         disableIntervalMomentum
         decelerationRate="fast"
         bounces={false}

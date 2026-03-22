@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Switch, TouchableOpacity, View } from "react-native";
 import { Text, TextInput } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -39,9 +39,36 @@ const LABELS: Record<string, string> = {
 const defaultSettings: DiaryAnalyzeSettingsV2 = {
   daily: { enabled: false, time: "21:00" },
   weekly: { enabled: false, day: "sun", time: "21:00" },
-  monthly: { enabled: false, day: "1", time: "21:00" },
-  yearly: { enabled: false, month: 1, day: "1", time: "21:00" },
+  monthly: { enabled: false, day: 1, time: "21:00" },
+  yearly: { enabled: false, month: 1, day: 1, time: "21:00" },
 };
+
+function PickerField({
+  label,
+  value,
+  onPress,
+  disabled,
+}: {
+  label: string;
+  value: string;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <TouchableOpacity onPress={onPress} disabled={disabled} activeOpacity={0.85}>
+      <View pointerEvents="none">
+        <TextInput
+          label={label}
+          value={value}
+          mode="outlined"
+          editable={false}
+          disabled={disabled}
+          right={<TextInput.Icon icon="chevron-down" />}
+        />
+      </View>
+    </TouchableOpacity>
+  );
+}
 
 function formatDayLabel(day?: DiaryScheduleDay | null) {
   if (day === undefined || day === null) return "--";
@@ -195,14 +222,7 @@ export default function DiaryAnalysisSettingsScreen() {
           onToggle={(enabled) => updatePeriod("daily", { enabled })}
           colors={colors}
         >
-          <TextInput
-            label="时间"
-            value={settings.daily.time || "22:00"}
-            mode="outlined"
-            editable={false}
-            right={<TextInput.Icon icon="chevron-down" onPress={() => setActiveTimeKey("daily")} />}
-            onPressIn={() => setActiveTimeKey("daily")}
-          />
+          <PickerField label="时间" value={settings.daily.time || "22:00"} onPress={() => setActiveTimeKey("daily")} />
         </PeriodCard>
 
         <PeriodCard
@@ -212,22 +232,8 @@ export default function DiaryAnalysisSettingsScreen() {
           onToggle={(enabled) => updatePeriod("weekly", { enabled })}
           colors={colors}
         >
-          <TextInput
-            label="生成日"
-            value={formatDayLabel(settings.weekly.day)}
-            mode="outlined"
-            editable={false}
-            right={<TextInput.Icon icon="chevron-down" onPress={() => setShowWeeklyPicker(true)} />}
-            onPressIn={() => setShowWeeklyPicker(true)}
-          />
-          <TextInput
-            label="时间"
-            value={settings.weekly.time || "20:00"}
-            mode="outlined"
-            editable={false}
-            right={<TextInput.Icon icon="chevron-down" onPress={() => setActiveTimeKey("weekly")} />}
-            onPressIn={() => setActiveTimeKey("weekly")}
-          />
+          <PickerField label="生成日" value={formatDayLabel(settings.weekly.day)} onPress={() => setShowWeeklyPicker(true)} />
+          <PickerField label="时间" value={settings.weekly.time || "20:00"} onPress={() => setActiveTimeKey("weekly")} />
         </PeriodCard>
 
         <PeriodCard
@@ -237,14 +243,7 @@ export default function DiaryAnalysisSettingsScreen() {
           onToggle={(enabled) => updatePeriod("monthly", { enabled })}
           colors={colors}
         >
-          <TextInput
-            label="时间"
-            value={settings.monthly.time || "20:00"}
-            mode="outlined"
-            editable={false}
-            right={<TextInput.Icon icon="chevron-down" onPress={() => setActiveTimeKey("monthly")} />}
-            onPressIn={() => setActiveTimeKey("monthly")}
-          />
+          <PickerField label="时间" value={settings.monthly.time || "20:00"} onPress={() => setActiveTimeKey("monthly")} />
         </PeriodCard>
 
         <PeriodCard
@@ -254,14 +253,7 @@ export default function DiaryAnalysisSettingsScreen() {
           onToggle={(enabled) => updatePeriod("yearly", { enabled })}
           colors={colors}
         >
-          <TextInput
-            label="时间"
-            value={settings.yearly.time || "20:00"}
-            mode="outlined"
-            editable={false}
-            right={<TextInput.Icon icon="chevron-down" onPress={() => setActiveTimeKey("yearly")} />}
-            onPressIn={() => setActiveTimeKey("yearly")}
-          />
+          <PickerField label="时间" value={settings.yearly.time || "20:00"} onPress={() => setActiveTimeKey("yearly")} />
         </PeriodCard>
       </ScrollView>
 
