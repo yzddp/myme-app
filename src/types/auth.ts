@@ -16,6 +16,12 @@ export interface User {
   bio: string | null;
   theme: "warm" | "cool" | "dark";
   languageCode: "zh-CN" | "zh-TW" | "en";
+  regionCountryCode?: string | null;
+  regionCountryName?: string | null;
+  regionProvinceCode?: string | null;
+  regionProvinceName?: string | null;
+  regionCityCode?: string | null;
+  regionCityName?: string | null;
   createdAt: string;
   updatedAt: string;
 }

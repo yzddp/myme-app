@@ -23,6 +23,9 @@ import type { ProfileStackParamList } from "../../navigation/types";
 import AppHeader from "../../components/AppHeader";
 import DatePickerInput from "../../components/DatePickerInput";
 import { resolveAvatarUrl } from "../../utils/avatar";
+import SimplePickerModal from "../../components/SimplePickerModal";
+import metaService from "../../services/metaService";
+import type { LanguageOption, RegionOption } from "../../services/userService";
 
 const GENDER_OPTIONS = [
   { value: "male", label: "男" },
@@ -45,6 +48,21 @@ export default function ProfileEditScreen() {
     user?.birthday ? user.birthday.split("T")[0] : "",
   );
   const [bio, setBio] = useState(user?.bio || "");
+  const [languageCode, setLanguageCode] = useState(user?.languageCode || "zh-CN");
+  const [regionCountryCode, setRegionCountryCode] = useState(user?.regionCountryCode || "");
+  const [regionCountryName, setRegionCountryName] = useState(user?.regionCountryName || "");
+  const [regionProvinceCode, setRegionProvinceCode] = useState(user?.regionProvinceCode || "");
+  const [regionProvinceName, setRegionProvinceName] = useState(user?.regionProvinceName || "");
+  const [regionCityCode, setRegionCityCode] = useState(user?.regionCityCode || "");
+  const [regionCityName, setRegionCityName] = useState(user?.regionCityName || "");
+  const [languageOptions, setLanguageOptions] = useState<LanguageOption[]>([]);
+  const [countryOptions, setCountryOptions] = useState<RegionOption[]>([]);
+  const [provinceOptions, setProvinceOptions] = useState<RegionOption[]>([]);
+  const [cityOptions, setCityOptions] = useState<RegionOption[]>([]);
+  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
+  const [showProvincePicker, setShowProvincePicker] = useState(false);
+  const [showCityPicker, setShowCityPicker] = useState(false);
   const avatarUri = resolveAvatarUrl(user?.avatar);
   const bypassUnsavedPromptRef = useRef(false);
 
@@ -55,8 +73,64 @@ export default function ProfileEditScreen() {
     setGender(user?.gender || "");
     setBirthday(user?.birthday ? user.birthday.split("T")[0] : "");
     setBio(user?.bio || "");
+    setLanguageCode(user?.languageCode || "zh-CN");
+    setRegionCountryCode(user?.regionCountryCode || "");
+    setRegionCountryName(user?.regionCountryName || "");
+    setRegionProvinceCode(user?.regionProvinceCode || "");
+    setRegionProvinceName(user?.regionProvinceName || "");
+    setRegionCityCode(user?.regionCityCode || "");
+    setRegionCityName(user?.regionCityName || "");
     bypassUnsavedPromptRef.current = false;
   }, [user]);
+
+  useEffect(() => {
+    const loadMeta = async () => {
+      try {
+        const [languages, countries] = await Promise.all([
+          metaService.getLanguages(),
+          metaService.getRegions({ level: "country" }),
+        ]);
+        setLanguageOptions(languages);
+        setCountryOptions(countries);
+      } catch (error) {
+        console.error("Failed to load meta data:", error);
+      }
+    };
+
+    void loadMeta();
+  }, []);
+
+  useEffect(() => {
+    const loadChildren = async () => {
+      try {
+        if (regionCountryCode) {
+          const provinces = await metaService.getRegions({
+            level: "province",
+            parentCode: regionCountryCode,
+            countryCode: regionCountryCode,
+          });
+          setProvinceOptions(provinces);
+        } else {
+          setProvinceOptions([]);
+        }
+
+        if (regionProvinceCode) {
+          const cities = await metaService.getRegions({
+            level: "city",
+            parentCode: regionProvinceCode,
+            countryCode: regionCountryCode || undefined,
+          });
+          setCityOptions(cities);
+        } else {
+          setCityOptions([]);
+        }
+      } catch (error) {
+        console.error("Failed to load region children:", error);
+      }
+    };
+
+    void loadChildren();
+  }, [regionCountryCode, regionProvinceCode]);
 
   const initialValues = useMemo(
     () => ({
@@ -66,6 +140,10 @@ export default function ProfileEditScreen() {
       gender: user?.gender || "",
       birthday: user?.birthday ? user.birthday.split("T")[0] : "",
       bio: user?.bio || "",
+      languageCode: user?.languageCode || "zh-CN",
+      regionCountryCode: user?.regionCountryCode || "",
+      regionProvinceCode: user?.regionProvinceCode || "",
+      regionCityCode: user?.regionCityCode || "",
     }),
     [user],
   );
@@ -76,7 +154,11 @@ export default function ProfileEditScreen() {
     nickname !== initialValues.nickname ||
     gender !== initialValues.gender ||
     birthday !== initialValues.birthday ||
-    bio !== initialValues.bio;
+    bio !== initialValues.bio ||
+    languageCode !== initialValues.languageCode ||
+    regionCountryCode !== initialValues.regionCountryCode ||
+    regionProvinceCode !== initialValues.regionProvinceCode ||
+    regionCityCode !== initialValues.regionCityCode;
 
   const styles = StyleSheet.create({
     container: {
@@ -140,6 +222,13 @@ export default function ProfileEditScreen() {
         gender: gender as "male" | "female" | "other" | "",
         birthday: birthday || "",
         bio: bio.trim(),
+        languageCode: languageCode as "zh-CN" | "zh-TW" | "en",
+        regionCountryCode: regionCountryCode || null,
+        regionCountryName: regionCountryName || null,
+        regionProvinceCode: regionProvinceCode || null,
+        regionProvinceName: regionProvinceName || null,
+        regionCityCode: regionCityCode || null,
+        regionCityName: regionCityName || null,
       });
       updateUser(updatedUser);
       bypassUnsavedPromptRef.current = true;
@@ -176,7 +265,13 @@ export default function ProfileEditScreen() {
     });
 
     return unsubscribe;
-  }, [navigation, isDirty, loading, email, name, nickname, gender, birthday, bio]);
+  }, [navigation, isDirty, loading, email, name, nickname, gender, birthday, bio, languageCode, regionCountryCode, regionProvinceCode, regionCityCode]);
+
+  const selectedLanguage =
+    languageOptions.find((item) => item.code === languageCode)?.nameNative || languageCode;
+  const regionSummary = [regionCountryName, regionProvinceName, regionCityName]
+    .filter(Boolean)
+    .join(" / ");
 
   return (
     <KeyboardAvoidingView
@@ -267,6 +362,48 @@ export default function ProfileEditScreen() {
           />
 
           <TextInput
+            label="语言"
+            value={selectedLanguage}
+            mode="outlined"
+            style={[styles.input, { marginTop: 16 }]}
+            editable={false}
+            right={<TextInput.Icon icon="chevron-down" onPress={() => setShowLanguagePicker(true)} />}
+            onPressIn={() => setShowLanguagePicker(true)}
+          />
+
+          <TextInput
+            label="国家"
+            value={regionCountryName}
+            mode="outlined"
+            style={styles.input}
+            editable={false}
+            right={<TextInput.Icon icon="chevron-down" onPress={() => setShowCountryPicker(true)} />}
+            onPressIn={() => setShowCountryPicker(true)}
+          />
+
+          <TextInput
+            label="省/州"
+            value={regionProvinceName}
+            mode="outlined"
+            style={styles.input}
+            editable={false}
+            disabled={!regionCountryCode}
+            right={<TextInput.Icon icon="chevron-down" onPress={() => regionCountryCode && setShowProvincePicker(true)} />}
+            onPressIn={() => regionCountryCode && setShowProvincePicker(true)}
+          />
+
+          <TextInput
+            label="城市"
+            value={regionCityName}
+            mode="outlined"
+            style={styles.input}
+            editable={false}
+            disabled={!regionProvinceCode}
+            right={<TextInput.Icon icon="chevron-down" onPress={() => regionProvinceCode && setShowCityPicker(true)} />}
+            onPressIn={() => regionProvinceCode && setShowCityPicker(true)}
+          />
+
+          <TextInput
             label="简介"
             value={bio}
             onChangeText={setBio}
@@ -280,6 +417,78 @@ export default function ProfileEditScreen() {
           <Text style={styles.charCount}>{bio.length}/200</Text>
         </View>
       </ScrollView>
+
+      <SimplePickerModal
+        visible={showLanguagePicker}
+        title="选择语言"
+        selectedValue={languageCode}
+        options={languageOptions.map((item) => ({
+          value: item.code,
+          label: item.nameNative,
+          description: item.nameEn,
+        }))}
+        onDismiss={() => setShowLanguagePicker(false)}
+        onSelect={(value) =>
+          setLanguageCode(value as "zh-CN" | "zh-TW" | "en")
+        }
+      />
+
+      <SimplePickerModal
+        visible={showCountryPicker}
+        title="选择国家"
+        selectedValue={regionCountryCode}
+        options={countryOptions.map((item) => ({
+          value: item.code,
+          label: item.nameLocal || item.nameEn,
+          description: item.nameEn,
+        }))}
+        onDismiss={() => setShowCountryPicker(false)}
+        onSelect={(value) => {
+          const selected = countryOptions.find((item) => item.code === value);
+          setRegionCountryCode(value);
+          setRegionCountryName(selected?.nameLocal || selected?.nameEn || "");
+          setRegionProvinceCode("");
+          setRegionProvinceName("");
+          setRegionCityCode("");
+          setRegionCityName("");
+        }}
+      />
+
+      <SimplePickerModal
+        visible={showProvincePicker}
+        title="选择省/州"
+        selectedValue={regionProvinceCode}
+        options={provinceOptions.map((item) => ({
+          value: item.code,
+          label: item.nameLocal || item.nameEn,
+          description: item.nameEn,
+        }))}
+        onDismiss={() => setShowProvincePicker(false)}
+        onSelect={(value) => {
+          const selected = provinceOptions.find((item) => item.code === value);
+          setRegionProvinceCode(value);
+          setRegionProvinceName(selected?.nameLocal || selected?.nameEn || "");
+          setRegionCityCode("");
+          setRegionCityName("");
+        }}
+      />
+
+      <SimplePickerModal
+        visible={showCityPicker}
+        title="选择城市"
+        selectedValue={regionCityCode}
+        options={cityOptions.map((item) => ({
+          value: item.code,
+          label: item.nameLocal || item.nameEn,
+          description: item.nameEn,
+        }))}
+        onDismiss={() => setShowCityPicker(false)}
+        onSelect={(value) => {
+          const selected = cityOptions.find((item) => item.code === value);
+          setRegionCityCode(value);
+          setRegionCityName(selected?.nameLocal || selected?.nameEn || "");
+        }}
+      />
     </KeyboardAvoidingView>
   );
 }

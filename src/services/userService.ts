@@ -19,6 +19,12 @@ const USER_ENDPOINTS = {
 export interface UpdateProfileRequest {
   email?: string;
   languageCode?: "zh-CN" | "zh-TW" | "en";
+  regionCountryCode?: string | null;
+  regionCountryName?: string | null;
+  regionProvinceCode?: string | null;
+  regionProvinceName?: string | null;
+  regionCityCode?: string | null;
+  regionCityName?: string | null;
   name?: string;
   nickname?: string;
   gender?: "male" | "female" | "other" | "";
@@ -34,6 +40,21 @@ export interface UserData {
   totalAvatars: number;
   streak: number;
   lastActive: string;
+}
+
+export interface LanguageOption {
+  code: "zh-CN" | "zh-TW" | "en";
+  nameEn: string;
+  nameNative: string;
+}
+
+export interface RegionOption {
+  code: string;
+  parentCode: string | null;
+  level: "country" | "province" | "city";
+  countryCode: string;
+  nameEn: string;
+  nameLocal: string | null;
 }
 
 export const userService = {
