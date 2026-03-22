@@ -5,6 +5,7 @@
 
 import { apiService, TOKEN_KEY, REFRESH_TOKEN_KEY } from "./api";
 import { storage } from "../utils/storage";
+import { normalizeLanguageCode } from "../i18n";
 import type {
   User,
   RegisterRequest,
@@ -37,7 +38,9 @@ export const authService = {
       birthday: user.birthday ?? null,
       bio: user.bio ?? null,
       theme: user.theme ?? "warm",
-      locale: user.locale ?? "zh-CN",
+      languageCode: normalizeLanguageCode(
+        (user as any).languageCode ?? (user as any).language_code,
+      ),
       createdAt: user.createdAt,
       updatedAt: user.updatedAt ?? user.createdAt,
     };

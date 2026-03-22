@@ -45,7 +45,6 @@ export default function ProfileEditScreen() {
     user?.birthday ? user.birthday.split("T")[0] : "",
   );
   const [bio, setBio] = useState(user?.bio || "");
-  const [locale, setLocale] = useState(user?.locale || "zh-CN");
   const avatarUri = resolveAvatarUrl(user?.avatar);
   const bypassUnsavedPromptRef = useRef(false);
 
@@ -56,7 +55,6 @@ export default function ProfileEditScreen() {
     setGender(user?.gender || "");
     setBirthday(user?.birthday ? user.birthday.split("T")[0] : "");
     setBio(user?.bio || "");
-    setLocale(user?.locale || "zh-CN");
     bypassUnsavedPromptRef.current = false;
   }, [user]);
 
@@ -68,7 +66,6 @@ export default function ProfileEditScreen() {
       gender: user?.gender || "",
       birthday: user?.birthday ? user.birthday.split("T")[0] : "",
       bio: user?.bio || "",
-      locale: user?.locale || "zh-CN",
     }),
     [user],
   );
@@ -79,8 +76,7 @@ export default function ProfileEditScreen() {
     nickname !== initialValues.nickname ||
     gender !== initialValues.gender ||
     birthday !== initialValues.birthday ||
-    bio !== initialValues.bio ||
-    locale !== initialValues.locale;
+    bio !== initialValues.bio;
 
   const styles = StyleSheet.create({
     container: {
@@ -144,7 +140,6 @@ export default function ProfileEditScreen() {
         gender: gender as "male" | "female" | "other" | "",
         birthday: birthday || "",
         bio: bio.trim(),
-        locale: locale.trim() || "zh-CN",
       });
       updateUser(updatedUser);
       bypassUnsavedPromptRef.current = true;
@@ -181,7 +176,7 @@ export default function ProfileEditScreen() {
     });
 
     return unsubscribe;
-  }, [navigation, isDirty, loading, email, name, nickname, gender, birthday, bio, locale]);
+  }, [navigation, isDirty, loading, email, name, nickname, gender, birthday, bio]);
 
   return (
     <KeyboardAvoidingView
@@ -269,16 +264,6 @@ export default function ProfileEditScreen() {
             minimumDate="1900-01-01"
             maximumDate={new Date().toISOString().split("T")[0]}
             defaultPickerDate="2000-01-01"
-          />
-
-          <TextInput
-            label="语言地区"
-            value={locale}
-            onChangeText={setLocale}
-            mode="outlined"
-            style={[styles.input, { marginTop: 16 }]}
-            autoCapitalize="none"
-            placeholder="例如 zh-CN"
           />
 
           <TextInput

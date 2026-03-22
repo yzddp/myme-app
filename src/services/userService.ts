@@ -18,20 +18,13 @@ const USER_ENDPOINTS = {
 
 export interface UpdateProfileRequest {
   email?: string;
+  languageCode?: "zh-CN" | "zh-TW" | "en";
   name?: string;
   nickname?: string;
   gender?: "male" | "female" | "other" | "";
   birthday?: string;
   bio?: string;
   theme?: "warm" | "cool" | "dark";
-  locale?: string;
-}
-
-export interface NotificationSettings {
-  diaryReminder: boolean;
-  aiInsight: boolean;
-  marketing: boolean;
-  email: boolean;
 }
 
 export interface UserData {
@@ -75,28 +68,6 @@ export const userService = {
     return apiService.put<{ avatar: string | null }>(
       USER_ENDPOINTS.avatar,
       payload,
-    );
-  },
-
-  /**
-   * 获取通知设置
-   * @returns 通知设置
-   */
-  async getNotificationSettings(): Promise<NotificationSettings> {
-    return apiService.get<NotificationSettings>(USER_ENDPOINTS.notifications);
-  },
-
-  /**
-   * 更新通知设置
-   * @param settings 通知设置
-   * @returns 更新后的通知设置
-   */
-  async updateNotificationSettings(
-    settings: NotificationSettings,
-  ): Promise<NotificationSettings> {
-    return apiService.put<NotificationSettings>(
-      USER_ENDPOINTS.notifications,
-      settings,
     );
   },
 

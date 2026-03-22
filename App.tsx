@@ -17,6 +17,12 @@ import AppNavigator from "./src/navigation/AppNavigator";
 import { navigationRef } from "./src/navigation/navigationRef";
 import { useAuthStore } from "./src/store/authStore";
 import { authService } from "./src/services/authService";
+import {
+  getSystemLanguage,
+  LanguageProvider,
+  normalizeLanguageCode,
+  useLanguage,
+} from "./src/i18n";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,6 +37,18 @@ const queryClient = new QueryClient({
 const ThemedApp = () => {
   const { themeMode, colors } = useTheme();
   const { isAuthenticated, user, setUser, logout } = useAuthStore();
+  const { setLanguage } = useLanguage();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setLanguage(getSystemLanguage());
+      return;
+    }
+
+    if (user?.languageCode) {
+      setLanguage(normalizeLanguageCode(user.languageCode));
+    }
+  }, [isAuthenticated, user?.languageCode, setLanguage]);
 
   useEffect(() => {
     if (!isAuthenticated || user) {
@@ -91,7 +109,9 @@ export default function App() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider>
-            <ThemedApp />
+            <LanguageProvider>
+              <ThemedApp />
+            </LanguageProvider>
           </ThemeProvider>
         </QueryClientProvider>
       </SafeAreaProvider>

@@ -19,9 +19,11 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "../../navigation/types";
 import { authService } from "../../services/authService";
 import { useTheme } from "../../context/ThemeContext";
+import { useLanguage } from "../../i18n";
 
 export default function LoginScreen() {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const navigation =
     useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { login } = useAuthStore();
@@ -33,7 +35,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!identifier || !password) {
-      setError("请输入邮箱或账号，以及密码");
+      setError(t("auth.login.required"));
       return;
     }
 
@@ -45,7 +47,7 @@ export default function LoginScreen() {
       const response = await authService.login(identifier, password);
       login(response.accessToken, response.refreshToken, response.user);
     } catch (err: any) {
-      setError(err.message || "登录失败，请重试");
+      setError(err.message || t("auth.login.failed"));
     } finally {
       setLoading(false);
     }
@@ -116,12 +118,12 @@ export default function LoginScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text style={styles.title}>MyMe</Text>
-          <Text style={styles.subtitle}>AI驱动的数字分身应用</Text>
+          <Text style={styles.subtitle}>{t("auth.login.subtitle")}</Text>
         </View>
 
         <View style={styles.form}>
           <TextInput
-            label="邮箱或账号"
+            label={t("auth.login.identifier")}
             value={identifier}
             onChangeText={setIdentifier}
             mode="outlined"
@@ -131,7 +133,7 @@ export default function LoginScreen() {
           />
 
           <TextInput
-            label="密码"
+            label={t("auth.login.password")}
             value={password}
             onChangeText={setPassword}
             mode="outlined"
@@ -149,7 +151,7 @@ export default function LoginScreen() {
             style={styles.button}
             contentStyle={styles.buttonContent}
           >
-            登录
+            {t("auth.login.submit")}
           </Button>
 
           <Button
@@ -157,17 +159,17 @@ export default function LoginScreen() {
             onPress={() => navigation.navigate("ForgotPassword")}
             style={styles.linkButton}
           >
-            忘记密码？
+            {t("auth.login.forgotPassword")}
           </Button>
 
           <View style={styles.registerContainer}>
-            <Text style={styles.registerText}>还没有账号？</Text>
+            <Text style={styles.registerText}>{t("auth.login.noAccount")}</Text>
             <Button
               mode="text"
               onPress={() => navigation.navigate("Register")}
               compact
             >
-              立即注册
+              {t("auth.login.registerNow")}
             </Button>
           </View>
         </View>

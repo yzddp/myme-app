@@ -15,7 +15,7 @@ export interface User {
   birthday: string | null;
   bio: string | null;
   theme: "warm" | "cool" | "dark";
-  locale: string;
+  languageCode: "zh-CN" | "zh-TW" | "en";
   createdAt: string;
   updatedAt: string;
 }

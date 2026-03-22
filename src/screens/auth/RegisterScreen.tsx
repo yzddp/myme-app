@@ -19,9 +19,11 @@ import type { AuthStackParamList } from "../../navigation/types";
 import { authService } from "../../services/authService";
 import { useTheme } from "../../context/ThemeContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useLanguage } from "../../i18n";
 
 export default function RegisterScreen() {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   const navigation =
     useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
@@ -37,22 +39,22 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (!email || !password || !username || !nickname) {
-      setError("请填写所有必填项");
+      setError(t("auth.register.required"));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("两次输入的密码不一致");
+      setError(t("auth.register.passwordMismatch"));
       return;
     }
 
     if (password.length < 6) {
-      setError("密码长度至少为6位");
+      setError(t("auth.register.passwordShort"));
       return;
     }
 
     if (!/^[a-zA-Z0-9]+$/.test(username.trim())) {
-      setError("账号只能包含英文字母和阿拉伯数字");
+      setError(t("auth.register.usernameInvalid"));
       return;
     }
 
@@ -70,7 +72,7 @@ export default function RegisterScreen() {
       });
       login(response.accessToken, response.refreshToken, response.user);
     } catch (err: any) {
-      setError(err.message || "注册失败，请重试");
+      setError(err.message || t("auth.register.failed"));
     } finally {
       setLoading(false);
     }
@@ -145,24 +147,24 @@ export default function RegisterScreen() {
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>创建账号</Text>
-          <Text style={styles.subtitle}>开启你的数字分身之旅</Text>
+          <Text style={styles.title}>{t("auth.register.title")}</Text>
+          <Text style={styles.subtitle}>{t("auth.register.subtitle")}</Text>
         </View>
 
         <View style={styles.form}>
           <TextInput
-            label="账号"
+            label={t("auth.register.username")}
             value={username}
             onChangeText={setUsername}
             mode="outlined"
             autoCapitalize="none"
             style={styles.input}
             left={<TextInput.Icon icon="account" />}
-            placeholder="请输入英文和数字组合"
+            placeholder={t("auth.register.usernamePlaceholder")}
           />
 
           <TextInput
-            label="邮箱"
+            label={t("auth.register.email")}
             value={email}
             onChangeText={setEmail}
             mode="outlined"
@@ -173,7 +175,7 @@ export default function RegisterScreen() {
           />
 
           <TextInput
-            label="昵称"
+            label={t("auth.register.nickname")}
             value={nickname}
             onChangeText={setNickname}
             mode="outlined"
@@ -182,7 +184,7 @@ export default function RegisterScreen() {
           />
 
           <TextInput
-            label="密码 (至少6位)"
+            label={t("auth.register.password")}
             value={password}
             onChangeText={setPassword}
             mode="outlined"
@@ -192,7 +194,7 @@ export default function RegisterScreen() {
           />
 
           <TextInput
-            label="确认密码"
+            label={t("auth.register.confirmPassword")}
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             mode="outlined"
@@ -211,17 +213,17 @@ export default function RegisterScreen() {
             style={styles.button}
             contentStyle={styles.buttonContent}
           >
-            注册
+            {t("auth.register.submit")}
           </Button>
 
           <View style={styles.loginContainer}>
-            <Text style={styles.loginText}>已有账号？</Text>
+            <Text style={styles.loginText}>{t("auth.register.hasAccount")}</Text>
             <Button
               mode="text"
               onPress={() => navigation.navigate("Login")}
               compact
             >
-              立即登录
+              {t("auth.register.loginNow")}
             </Button>
           </View>
         </View>
