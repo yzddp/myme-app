@@ -33,7 +33,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!identifier || !password) {
-      setError("请输入邮箱或用户名，以及密码");
+      setError("请输入邮箱或账号，以及密码");
       return;
     }
 
@@ -121,7 +121,7 @@ export default function LoginScreen() {
 
         <View style={styles.form}>
           <TextInput
-            label="邮箱或用户名"
+            label="邮箱或账号"
             value={identifier}
             onChangeText={setIdentifier}
             mode="outlined"

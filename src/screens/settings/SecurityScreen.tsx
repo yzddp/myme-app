@@ -66,8 +66,8 @@ export default function SecurityScreen() {
       ]);
     } catch (error: any) {
       console.error("Failed to change password:", error);
-      if (error?.response?.status === 401) {
-        Alert.alert("错误", "当前密码错误");
+      if (error?.status === 400 && error?.code === "INVALID_PASSWORD") {
+        Alert.alert("错误", "原密码错误请重新录入");
       } else {
         Alert.alert("错误", "密码修改失败，请重试");
       }
@@ -123,8 +123,8 @@ export default function SecurityScreen() {
               style={[styles.divider, { backgroundColor: colors.divider }]}
             />
             <View style={styles.infoRow}>
-              <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-                用户名
+              <Text style={[styles.infoLabel, { color: colors.textSecondary }]}> 
+                账号
               </Text>
               <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
                 {user?.username || "-"}

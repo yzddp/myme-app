@@ -51,6 +51,11 @@ export default function RegisterScreen() {
       return;
     }
 
+    if (!/^[a-zA-Z0-9]+$/.test(username.trim())) {
+      setError("账号只能包含英文字母和阿拉伯数字");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -146,13 +151,14 @@ export default function RegisterScreen() {
 
         <View style={styles.form}>
           <TextInput
-            label="用户名 (全局唯一)"
+            label="账号"
             value={username}
             onChangeText={setUsername}
             mode="outlined"
             autoCapitalize="none"
             style={styles.input}
             left={<TextInput.Icon icon="account" />}
+            placeholder="请输入英文和数字组合"
           />
 
           <TextInput
