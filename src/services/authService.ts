@@ -41,6 +41,18 @@ export const authService = {
       languageCode: normalizeLanguageCode(
         (user as any).languageCode ?? (user as any).language_code,
       ),
+      regionCountryCode:
+        (user as any).regionCountryCode ?? (user as any).region_country_code ?? null,
+      regionCountryName:
+        (user as any).regionCountryName ?? (user as any).region_country_name ?? null,
+      regionProvinceCode:
+        (user as any).regionProvinceCode ?? (user as any).region_province_code ?? null,
+      regionProvinceName:
+        (user as any).regionProvinceName ?? (user as any).region_province_name ?? null,
+      regionCityCode:
+        (user as any).regionCityCode ?? (user as any).region_city_code ?? null,
+      regionCityName:
+        (user as any).regionCityName ?? (user as any).region_city_name ?? null,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt ?? user.createdAt,
     };

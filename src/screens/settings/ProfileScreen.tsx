@@ -161,7 +161,12 @@ export default function ProfileScreen() {
       <Card style={[styles.card, { backgroundColor: colors.surface }]}>
         <Card.Content style={styles.cardContent}>
           {mkItem(t("profile.diarySettings"), "book-cog", () =>
-            navigation.navigate("DiaryAnalysisSettings" as never),
+            navigationRef.navigate("Main", {
+              screen: "DiaryTab",
+              params: {
+                screen: "DiaryAnalysisSettings",
+              },
+            }),
           )}
         </Card.Content>
       </Card>

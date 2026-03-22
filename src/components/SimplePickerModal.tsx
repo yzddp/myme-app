@@ -17,6 +17,7 @@ export default function SimplePickerModal({
   onDismiss,
   onSelect,
   searchable = true,
+  minListHeight,
 }: {
   visible: boolean;
   title: string;
@@ -25,6 +26,7 @@ export default function SimplePickerModal({
   onDismiss: () => void;
   onSelect: (value: string) => void;
   searchable?: boolean;
+  minListHeight?: number;
 }) {
   const { colors } = useTheme();
   const [query, setQuery] = useState("");
@@ -63,28 +65,22 @@ export default function SimplePickerModal({
     search: {
       marginBottom: 12,
       backgroundColor: colors.surfaceVariant,
+      height: 40,
+    },
+    list: {
+      minHeight: minListHeight || 260,
     },
     option: {
       borderWidth: 1,
       borderColor: colors.border,
-      borderRadius: 14,
+      borderRadius: 10,
       paddingHorizontal: 14,
-      paddingVertical: 12,
-      marginBottom: 10,
+      paddingVertical: 10,
+      marginBottom: 2,
     },
     selected: {
       borderColor: colors.primary,
       backgroundColor: colors.primaryLight,
-    },
-    optionLabel: {
-      fontSize: 15,
-      fontWeight: "600",
-      color: colors.textPrimary,
-    },
-    optionDescription: {
-      fontSize: 12,
-      color: colors.textSecondary,
-      marginTop: 4,
     },
     footer: {
       flexDirection: "row",
@@ -104,9 +100,10 @@ export default function SimplePickerModal({
               value={query}
               onChangeText={setQuery}
               style={styles.search}
+              inputStyle={{ minHeight: 0, fontSize: 14 }}
             />
           ) : null}
-          <ScrollView>
+          <ScrollView style={styles.list}>
             {filteredOptions.map((option) => {
               const selected = option.value === selectedValue;
               return (
@@ -118,7 +115,7 @@ export default function SimplePickerModal({
                     onSelect(option.value);
                     onDismiss();
                   }}
-                  contentStyle={{ justifyContent: "flex-start" }}
+                  contentStyle={{ justifyContent: "flex-start", minHeight: 44 }}
                   labelStyle={{ color: selected ? colors.textOnPrimary : colors.textPrimary }}
                 >
                   {option.label}

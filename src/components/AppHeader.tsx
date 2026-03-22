@@ -52,7 +52,7 @@ export default function AppHeader({
         },
       ]}
     >
-      {centerTitle ? leftNode : null}
+      {leftNode}
       <View
         style={[
           styles.titleWrap,

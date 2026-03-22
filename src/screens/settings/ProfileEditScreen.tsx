@@ -188,6 +188,12 @@ export default function ProfileEditScreen() {
       marginBottom: 16,
       backgroundColor: colors.surface,
     },
+    helperText: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginTop: -8,
+      marginBottom: 12,
+    },
     charCount: {
       textAlign: "right",
       fontSize: 12,
@@ -269,9 +275,6 @@ export default function ProfileEditScreen() {
 
   const selectedLanguage =
     languageOptions.find((item) => item.code === languageCode)?.nameNative || languageCode;
-  const regionSummary = [regionCountryName, regionProvinceName, regionCityName]
-    .filter(Boolean)
-    .join(" / ");
 
   return (
     <KeyboardAvoidingView
@@ -333,6 +336,7 @@ export default function ProfileEditScreen() {
             maxLength={30}
             placeholder="请输入真实姓名或常用称呼"
           />
+          {!name ? <Text style={styles.helperText}>首次注册默认留空，需要时再填写</Text> : null}
 
           <TextInput
             label="昵称"

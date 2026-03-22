@@ -8,7 +8,14 @@ const META_ENDPOINTS = {
 
 export const metaService = {
   async getLanguages(query?: string): Promise<LanguageOption[]> {
-    return apiService.get<LanguageOption[]>(META_ENDPOINTS.languages, { query });
+    const response = await apiService.get<any>(META_ENDPOINTS.languages, { query });
+    if (Array.isArray(response)) {
+      return response;
+    }
+    if (Array.isArray(response?.items)) {
+      return response.items;
+    }
+    return [];
   },
 
   async getRegions(params: {
@@ -17,7 +24,14 @@ export const metaService = {
     countryCode?: string;
     query?: string;
   }): Promise<RegionOption[]> {
-    return apiService.get<RegionOption[]>(META_ENDPOINTS.regions, params);
+    const response = await apiService.get<any>(META_ENDPOINTS.regions, params);
+    if (Array.isArray(response)) {
+      return response;
+    }
+    if (Array.isArray(response?.items)) {
+      return response.items;
+    }
+    return [];
   },
 };
 
