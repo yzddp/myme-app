@@ -165,6 +165,9 @@ export default function ProfileScreen() {
               screen: "DiaryTab",
               params: {
                 screen: "DiaryAnalysisSettings",
+                params: {
+                  from: "profile",
+                },
               },
             }),
           )}

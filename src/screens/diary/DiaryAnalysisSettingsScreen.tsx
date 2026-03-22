@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, TouchableOpacity, View } from "react-native";
 import { Text, TextInput } from "react-native-paper";
-import { useNavigation } from "@react-navigation/native";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { navigationRef } from "../../navigation/navigationRef";
 import type { DiaryStackParamList } from "../../navigation/types";
 import { useTheme } from "../../context/ThemeContext";
 import AppHeader from "../../components/AppHeader";
@@ -16,6 +17,10 @@ import type {
 } from "../../types/diary";
 
 type NavigationProp = NativeStackNavigationProp<DiaryStackParamList>;
+type DiaryAnalysisSettingsRouteProp = RouteProp<
+  DiaryStackParamList,
+  "DiaryAnalysisSettings"
+>;
 
 const WEEK_DAYS: DiaryScheduleDay[] = [
   "mon",
@@ -119,6 +124,7 @@ function PeriodCard({
 
 export default function DiaryAnalysisSettingsScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const route = useRoute<DiaryAnalysisSettingsRouteProp>();
   const { colors } = useTheme();
   const [settings, setSettings] =
     useState<DiaryAnalyzeSettingsV2>(defaultSettings);
@@ -129,6 +135,23 @@ export default function DiaryAnalysisSettingsScreen() {
   const bypassUnsavedPromptRef = useRef(false);
   const [showWeeklyPicker, setShowWeeklyPicker] = useState(false);
   const initialSettingsRef = useRef<DiaryAnalyzeSettingsV2>(defaultSettings);
+  const from = route.params?.from ?? "diary";
+
+  const navigateAfterSave = () => {
+    if (from === "profile") {
+      if (navigationRef.isReady()) {
+        navigationRef.navigate("Main", {
+          screen: "ProfileTab",
+          params: {
+            screen: "Profile",
+          },
+        });
+        return;
+      }
+    }
+
+    navigation.goBack();
+  };
 
   useEffect(() => {
     void loadSettings();
@@ -173,7 +196,7 @@ export default function DiaryAnalysisSettingsScreen() {
       initialSettingsRef.current = response.settings;
       setSettings(response.settings);
       bypassUnsavedPromptRef.current = true;
-      navigation.goBack();
+      navigateAfterSave();
     } catch (error) {
       Alert.alert("错误", "保存日记设置失败，请重试");
     } finally {
@@ -207,7 +230,7 @@ export default function DiaryAnalysisSettingsScreen() {
       <AppHeader
         title="日记设置"
         leftIcon="arrow-left"
-        onLeftPress={() => navigation.goBack()}
+        onLeftPress={navigateAfterSave}
         rightIcon="check"
         onRightPress={() => {
           void handleSave();

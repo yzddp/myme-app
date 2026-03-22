@@ -377,8 +377,6 @@ export default function DiaryListScreen() {
     <View style={styles.container}>
       <AppHeader
         title="日记"
-        leftIcon="cog-outline"
-        onLeftPress={() => navigation.navigate("DiaryAnalysisSettings")}
         subtitle={
           activeTab === "diary"
             ? "写日记与查看归档"

@@ -8,6 +8,7 @@ import {
   Pressable,
   StyleSheet,
   View,
+  type KeyboardEvent,
 } from "react-native";
 import {
   Button,
@@ -26,13 +27,11 @@ import { a2aService } from "../../services/a2aService";
 import type { A2AMessage, A2ARelation, A2ASenderType } from "../../types/a2a";
 import { KNOWLEDGE_MODULE_DESCRIPTIONS } from "../../types/knowledge";
 import AppHeader from "../../components/AppHeader";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type A2AChatRouteProp = RouteProp<ProfileStackParamList, "A2AChat">;
 
 export default function A2AChatScreen() {
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const navigation =
     useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
   const route = useRoute<A2AChatRouteProp>();
@@ -44,11 +43,40 @@ export default function A2AChatScreen() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [senderType, setSenderType] = useState<A2ASenderType>("user");
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
   const flatListRef = useRef<FlatList<A2AMessage>>(null);
 
   useEffect(() => {
     void loadPage();
   }, [relationId]);
+
+  useEffect(() => {
+    if (Platform.OS !== "android") {
+      return;
+    }
+
+    const handleKeyboardShow = (event: KeyboardEvent) => {
+      setKeyboardOffset(event.endCoordinates?.height ?? 0);
+    };
+
+    const handleKeyboardHide = () => {
+      setKeyboardOffset(0);
+    };
+
+    const showSubscription = Keyboard.addListener(
+      "keyboardDidShow",
+      handleKeyboardShow,
+    );
+    const hideSubscription = Keyboard.addListener(
+      "keyboardDidHide",
+      handleKeyboardHide,
+    );
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   const styles = useMemo(
     () =>
@@ -97,7 +125,7 @@ export default function A2AChatScreen() {
         metaText: { fontSize: 11 },
         composer: {
           padding: 12,
-          paddingBottom: Math.max(insets.bottom, 12),
+          marginBottom: Platform.OS === "android" ? keyboardOffset : 0,
           borderTopWidth: 1,
           borderTopColor: colors.border,
           backgroundColor: colors.surface,
@@ -108,7 +136,7 @@ export default function A2AChatScreen() {
           height: 44,
         },
       }),
-    [colors, insets.bottom],
+    [colors],
   );
 
   const loadPage = async () => {
@@ -234,8 +262,9 @@ export default function A2AChatScreen() {
     <Pressable style={styles.container} onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 88 : 24}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        enabled={Platform.OS === "ios"}
+        keyboardVerticalOffset={88}
       >
         <AppHeader
           title={

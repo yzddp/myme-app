@@ -36,12 +36,17 @@ export const avatarService = {
    * @returns 分身列表
    */
   async getAvatars(): Promise<AvatarListResponse> {
-    const response = await apiService.get<AvatarListResponse>(
+    const response = await apiService.get<
+      AvatarListResponse & { items?: Avatar[] }
+    >(
       AVATAR_ENDPOINTS.base,
     );
+
+    const avatars = response.avatars ?? response.items ?? [];
+
     return {
-      avatars: response.avatars ?? [],
-      total: response.total ?? response.avatars?.length ?? 0,
+      avatars,
+      total: response.total ?? avatars.length,
     };
   },
 

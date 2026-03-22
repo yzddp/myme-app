@@ -13,6 +13,7 @@ import {
   Alert,
   Pressable,
   Keyboard,
+  type KeyboardEvent,
 } from "react-native";
 import {
   Text,
@@ -22,7 +23,6 @@ import {
 } from "react-native-paper";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { AgentStackParamList } from "../../navigation/types";
 import { useTheme } from "../../context/ThemeContext";
 import { chatService } from "../../services/chatService";
@@ -39,7 +39,6 @@ type AgentChatRouteProp = RouteProp<AgentStackParamList, "AgentChat">;
 
 export default function AgentChatScreen() {
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const navigation =
     useNavigation<NativeStackNavigationProp<AgentStackParamList>>();
   const route = useRoute<AgentChatRouteProp>();
@@ -49,6 +48,7 @@ export default function AgentChatScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
   const [sessionTitle, setSessionTitle] = useState("AI对话");
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(
     sessionId || null,
@@ -77,6 +77,34 @@ export default function AgentChatScreen() {
       ]);
     }
   }, [currentSessionId]);
+
+  useEffect(() => {
+    if (Platform.OS !== "android") {
+      return;
+    }
+
+    const handleKeyboardShow = (event: KeyboardEvent) => {
+      setKeyboardOffset(event.endCoordinates?.height ?? 0);
+    };
+
+    const handleKeyboardHide = () => {
+      setKeyboardOffset(0);
+    };
+
+    const showSubscription = Keyboard.addListener(
+      "keyboardDidShow",
+      handleKeyboardShow,
+    );
+    const hideSubscription = Keyboard.addListener(
+      "keyboardDidHide",
+      handleKeyboardHide,
+    );
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   const loadMessages = async (sid: string) => {
     try {
@@ -204,7 +232,7 @@ export default function AgentChatScreen() {
           flexDirection: "row",
           alignItems: "center",
           padding: 12,
-          paddingBottom: Math.max(insets.bottom, 12),
+          marginBottom: Platform.OS === "android" ? keyboardOffset : 0,
           backgroundColor: colors.surface,
           borderTopWidth: 1,
           borderTopColor: colors.border,
@@ -217,7 +245,7 @@ export default function AgentChatScreen() {
           textAlignVertical: "center",
         },
       }),
-    [colors, insets],
+    [colors],
   );
 
   const renderMessage = ({ item }: { item: Message }) => (
@@ -255,15 +283,14 @@ export default function AgentChatScreen() {
     <Pressable style={styles.container} onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 24}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        enabled={Platform.OS === "ios"}
+        keyboardVerticalOffset={90}
       >
         <AppHeader
           title={sessionTitle}
           leftIcon="arrow-left"
           onLeftPress={() => navigation.goBack()}
-          rightIcon="history"
-          onRightPress={() => navigation.navigate("AgentSessionList")}
           centerTitle
         />
 
