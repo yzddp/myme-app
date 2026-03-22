@@ -266,7 +266,9 @@ export default function ProfileEditScreen() {
             value={birthday}
             onChange={setBirthday}
             label="生日"
+            minimumDate="1900-01-01"
             maximumDate={new Date().toISOString().split("T")[0]}
+            defaultPickerDate="2000-01-01"
           />
 
           <TextInput
