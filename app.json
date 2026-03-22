@@ -23,9 +23,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#4A90E2",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "foregroundImage": "./assets/icon.png"
       },
       "package": "com.myme.app",
       "permissions": [
@@ -43,9 +41,11 @@
       "expo-secure-store"
     ],
     "extra": {
+      "router": {},
       "eas": {
-        "projectId": "myme-app-project"
+        "projectId": "1e1b5b09-2fa3-4a3d-b6bb-58573e8feb09"
       }
-    }
+    },
+    "owner": "yzddp"
   }
 }

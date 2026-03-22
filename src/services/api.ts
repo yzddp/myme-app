@@ -14,8 +14,9 @@ import { Alert } from "react-native";
 import { useAuthStore } from "../store/authStore";
 
 // 从环境变量获取配置
-export const API_URL = "http://192.168.31.196:8080";
-const API_VERSION = "/api/v1";
+export const API_URL =
+  process.env.EXPO_PUBLIC_API_URL || "http://localhost:8080";
+const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION || "/api/v1";
 const TIMEOUT = 10000;
 
 // 存储key
