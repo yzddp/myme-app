@@ -95,13 +95,6 @@ export default function UserAvatarScreen() {
       fontSize: 14,
       color: colors.textSecondary,
     },
-    uploadSection: {
-      paddingHorizontal: 16,
-      marginBottom: 16,
-    },
-    uploadButton: {
-      borderStyle: "dashed",
-    },
     sectionTitle: {
       fontSize: 16,
       fontWeight: "bold",
@@ -196,7 +189,7 @@ export default function UserAvatarScreen() {
         centerTitle
       />
 
-      <View style={styles.preview}>
+      <TouchableOpacity style={styles.preview} onPress={handlePickImage}>
         {customImageUri ? (
           <Image source={{ uri: customImageUri }} style={styles.previewImage} />
         ) : avatarUri && !selectedAvatar ? (
@@ -219,19 +212,8 @@ export default function UserAvatarScreen() {
             ]}
           />
         )}
-        <Text style={styles.previewLabel}>预览</Text>
-      </View>
-
-      <View style={styles.uploadSection}>
-        <Button
-          mode="outlined"
-          icon="camera"
-          onPress={handlePickImage}
-          style={styles.uploadButton}
-        >
-          从相册选择照片
-        </Button>
-      </View>
+        <Text style={styles.previewLabel}>点击头像从相册选择照片</Text>
+      </TouchableOpacity>
 
       <Text style={styles.sectionTitle}>或选择预设头像</Text>
 

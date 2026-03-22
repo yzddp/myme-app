@@ -6,14 +6,7 @@
 import React from "react";
 import { View, StyleSheet, ScrollView, Linking } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  Text,
-  Card,
-  List,
-  Divider,
-  Button,
-  IconButton,
-} from "react-native-paper";
+import { Text, Card, List, Divider } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { ProfileStackParamList } from "../../navigation/types";
@@ -103,10 +96,6 @@ export default function AboutScreen() {
     Linking.openURL("https://myme.ai/terms");
   };
 
-  const handleFeedback = () => {
-    Linking.openURL("mailto:feedback@myme.ai");
-  };
-
   return (
     <ScrollView style={styles.container}>
       <AppHeader
@@ -148,13 +137,6 @@ export default function AboutScreen() {
               left={(props) => <List.Icon {...props} icon="file-document" />}
               right={(props) => <List.Icon {...props} icon="chevron-right" />}
               onPress={handleTermsOfService}
-            />
-            <Divider />
-            <List.Item
-              title="意见反馈"
-              left={(props) => <List.Icon {...props} icon="email" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={handleFeedback}
             />
           </Card.Content>
         </Card>

@@ -86,33 +86,6 @@ export default function ProfileScreen() {
   const avatarLabel = displayName.substring(0, 2).toUpperCase() || "我";
   const avatarUri = resolveAvatarUrl(user?.avatar);
 
-  const formatDate = (value?: string | null) => {
-    if (!value) return "未设置";
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-    return date.toLocaleDateString("zh-CN");
-  };
-
-  const formatDateTime = (value?: string | null) => {
-    if (!value) return "-";
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-    return date.toLocaleString("zh-CN");
-  };
-
-  const genderLabel =
-    user?.gender === "male"
-      ? "男"
-      : user?.gender === "female"
-        ? "女"
-        : user?.gender === "other"
-          ? "其他"
-          : "未设置";
-
   const mkItem = (title: string, icon: string, onPress: () => void) => (
     <List.Item
       title={title}
@@ -160,92 +133,6 @@ export default function ProfileScreen() {
           @{user?.username || "未设置用户名"}
         </Text>
       </View>
-
-      <Card style={[styles.card, { backgroundColor: colors.surface }]}>
-        <Card.Content style={styles.infoCardContent}>
-          <Text style={[styles.infoCardTitle, { color: colors.textPrimary }]}>
-            个人信息
-          </Text>
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-              姓名
-            </Text>
-            <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
-              {user?.name || "未设置"}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-              昵称
-            </Text>
-            <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
-              {user?.nickname || "未设置"}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-              邮箱
-            </Text>
-            <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
-              {user?.email || "未设置"}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-              性别
-            </Text>
-            <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
-              {genderLabel}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-              生日
-            </Text>
-            <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
-              {formatDate(user?.birthday)}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-              地区
-            </Text>
-            <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
-              {user?.locale || "未设置"}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-              主题
-            </Text>
-            <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
-              {THEME_LABELS[user?.theme || "warm"] || user?.theme || "warm"}
-            </Text>
-          </View>
-          <View style={[styles.infoRow, styles.infoRowTop]}>
-            <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>
-              简介
-            </Text>
-            <Text
-              style={[
-                styles.infoValue,
-                styles.bioText,
-                { color: colors.textPrimary },
-              ]}
-            >
-              {user?.bio || "这个人很神秘，还没有留下简介。"}
-            </Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Text style={[styles.metaText, { color: colors.textTertiary }]}>
-              注册于 {formatDateTime(user?.createdAt)}
-            </Text>
-            <Text style={[styles.metaText, { color: colors.textTertiary }]}>
-              更新于 {formatDateTime(user?.updatedAt)}
-            </Text>
-          </View>
-        </Card.Content>
-      </Card>
 
       {/* ─── 菜单列表 ─── */}
       <Card style={[styles.card, { backgroundColor: colors.surface }]}>

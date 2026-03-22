@@ -35,7 +35,7 @@ export default function FeedbackScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
 
-  const [feedbackType, setFeedbackType] = useState("feature");
+  const [feedbackType, setFeedbackType] = useState("");
   const [content, setContent] = useState("");
   const [contact, setContact] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -43,6 +43,11 @@ export default function FeedbackScreen() {
   const handleSubmit = async () => {
     if (!content.trim()) {
       Alert.alert("提示", "请填写反馈内容");
+      return;
+    }
+
+    if (!feedbackType) {
+      Alert.alert("提示", "请选择反馈类型");
       return;
     }
 
