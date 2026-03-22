@@ -2,8 +2,10 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   FlatList,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   StyleSheet,
   View,
 } from "react-native";
@@ -24,11 +26,13 @@ import { a2aService } from "../../services/a2aService";
 import type { A2AMessage, A2ARelation, A2ASenderType } from "../../types/a2a";
 import { KNOWLEDGE_MODULE_DESCRIPTIONS } from "../../types/knowledge";
 import AppHeader from "../../components/AppHeader";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type A2AChatRouteProp = RouteProp<ProfileStackParamList, "A2AChat">;
 
 export default function A2AChatScreen() {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const navigation =
     useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
   const route = useRoute<A2AChatRouteProp>();
@@ -93,13 +97,18 @@ export default function A2AChatScreen() {
         metaText: { fontSize: 11 },
         composer: {
           padding: 12,
+          paddingBottom: Math.max(insets.bottom, 12),
           borderTopWidth: 1,
           borderTopColor: colors.border,
           backgroundColor: colors.surface,
         },
-        input: { backgroundColor: colors.background, marginBottom: 10 },
+        input: {
+          backgroundColor: colors.background,
+          marginBottom: 10,
+          height: 44,
+        },
       }),
-    [colors],
+    [colors, insets.bottom],
   );
 
   const loadPage = async () => {
@@ -222,130 +231,136 @@ export default function A2AChatScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={88}
-    >
-      <AppHeader
-        title={
-          relation
-            ? `正在和 ${relation.counterpartAvatar.name} 对话`
-            : "A2A对话"
-        }
-        subtitle={
-          relation
-            ? `${relation.counterpartUser.nickname || relation.counterpartUser.username || "对方用户"} · 我方分身 ${relation.selfAvatar.name}`
-            : "加载关系上下文中"
-        }
-        leftIcon="arrow-left"
-        onLeftPress={() => navigation.goBack()}
-      />
-
-      {relation ? (
-        <>
-          <View style={styles.banner}>
-            <Text style={[styles.bannerTitle, { color: colors.textPrimary }]}>
-              该分身已授权的认知范围
-            </Text>
-            <Text style={[styles.bannerText, { color: colors.textSecondary }]}>
-              聊天页顶部只展示对方分身的权限边界，不再混入我方权限。
-            </Text>
-            <View style={styles.chipRow}>
-              {relation.counterpartAvatar.permissions.length > 0 ? (
-                relation.counterpartAvatar.permissions.map((module) => (
-                  <Chip key={module}>{module}</Chip>
-                ))
-              ) : (
-                <Text style={{ color: colors.textSecondary }}>
-                  未开放知识模块
-                </Text>
-              )}
-            </View>
-            {relation.counterpartAvatar.permissions.map((module) => (
-              <Text
-                key={module}
-                style={[
-                  styles.bannerText,
-                  { color: colors.textSecondary, marginTop: 6 },
-                ]}
-              >
-                {module} · {KNOWLEDGE_MODULE_DESCRIPTIONS[module]}
-              </Text>
-            ))}
-          </View>
-
-          <View style={styles.senderBar}>
-            <Text style={[styles.senderLabel, { color: colors.textPrimary }]}>
-              发送身份
-            </Text>
-            <SegmentedButtons
-              value={senderType}
-              onValueChange={handleSwitchSenderType}
-              buttons={[
-                { value: "user", label: "本人发送" },
-                { value: "agent", label: "由我的分身代发" },
-              ]}
-            />
-            <HelperText
-              type="info"
-              visible
-              style={[styles.senderHint, { color: colors.textSecondary }]}
-            >
-              {senderType === "agent"
-                ? "将由你的当前分身身份代你表达"
-                : "将以你本人的口吻直接发送"}
-            </HelperText>
-          </View>
-        </>
-      ) : null}
-
-      {loading ? (
-        <View style={styles.loading}>
-          <Text style={{ color: colors.textSecondary }}>消息加载中...</Text>
-        </View>
-      ) : (
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.messageList}
-          onContentSizeChange={scrollToBottom}
+    <Pressable style={styles.container} onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 88 : 24}
+      >
+        <AppHeader
+          title={
+            relation
+              ? `正在和 ${relation.counterpartAvatar.name} 对话`
+              : "A2A对话"
+          }
+          subtitle={
+            relation
+              ? `${relation.counterpartUser.nickname || relation.counterpartUser.username || "对方用户"} · 我方分身 ${relation.selfAvatar.name}`
+              : "加载关系上下文中"
+          }
+          leftIcon="arrow-left"
+          onLeftPress={() => navigation.goBack()}
         />
-      )}
 
-      <View style={styles.composer}>
-        {relation?.status === "blocked" ? (
-          <Text style={{ color: colors.textSecondary }}>
-            该关系已被屏蔽，仅可查看历史消息。
-          </Text>
-        ) : (
+        {relation ? (
           <>
-            <TextInput
-              value={inputText}
-              onChangeText={setInputText}
-              placeholder={
-                senderType === "agent"
-                  ? "由我的分身代发消息..."
-                  : "本人发送消息..."
-              }
-              mode="outlined"
-              style={styles.input}
-              multiline
-              editable={!sending}
-            />
-            <Button
-              mode="contained"
-              onPress={sendMessage}
-              loading={sending}
-              disabled={sending || !inputText.trim()}
-            >
-              发送
-            </Button>
+            <View style={styles.banner}>
+              <Text style={[styles.bannerTitle, { color: colors.textPrimary }]}> 
+                该分身已授权的认知范围
+              </Text>
+              <Text style={[styles.bannerText, { color: colors.textSecondary }]}> 
+                聊天页顶部只展示对方分身的权限边界，不再混入我方权限。
+              </Text>
+              <View style={styles.chipRow}>
+                {relation.counterpartAvatar.permissions.length > 0 ? (
+                  relation.counterpartAvatar.permissions.map((module) => (
+                    <Chip key={module}>{module}</Chip>
+                  ))
+                ) : (
+                  <Text style={{ color: colors.textSecondary }}>
+                    未开放知识模块
+                  </Text>
+                )}
+              </View>
+              {relation.counterpartAvatar.permissions.map((module) => (
+                <Text
+                  key={module}
+                  style={[
+                    styles.bannerText,
+                    { color: colors.textSecondary, marginTop: 6 },
+                  ]}
+                >
+                  {module} · {KNOWLEDGE_MODULE_DESCRIPTIONS[module]}
+                </Text>
+              ))}
+            </View>
+
+            <View style={styles.senderBar}>
+              <Text style={[styles.senderLabel, { color: colors.textPrimary }]}> 
+                发送身份
+              </Text>
+              <SegmentedButtons
+                value={senderType}
+                onValueChange={handleSwitchSenderType}
+                buttons={[
+                  { value: "user", label: "本人发送" },
+                  { value: "agent", label: "由我的分身代发" },
+                ]}
+              />
+              <HelperText
+                type="info"
+                visible
+                style={[styles.senderHint, { color: colors.textSecondary }]}
+              >
+                {senderType === "agent"
+                  ? "将由你的当前分身身份代你表达"
+                  : "将以你本人的口吻直接发送"}
+              </HelperText>
+            </View>
           </>
+        ) : null}
+
+        {loading ? (
+          <View style={styles.loading}>
+            <Text style={{ color: colors.textSecondary }}>消息加载中...</Text>
+          </View>
+        ) : (
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            renderItem={renderMessage}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.messageList}
+            onContentSizeChange={scrollToBottom}
+            keyboardShouldPersistTaps="handled"
+          />
         )}
-      </View>
-    </KeyboardAvoidingView>
+
+        <View style={styles.composer}>
+          {relation?.status === "blocked" ? (
+            <Text style={{ color: colors.textSecondary }}>
+              该关系已被屏蔽，仅可查看历史消息。
+            </Text>
+          ) : (
+            <>
+              <TextInput
+                value={inputText}
+                onChangeText={setInputText}
+                placeholder={
+                  senderType === "agent"
+                    ? "由我的分身代发消息..."
+                    : "本人发送消息..."
+                }
+                mode="outlined"
+                style={styles.input}
+                multiline={false}
+                editable={!sending}
+                returnKeyType="send"
+                blurOnSubmit={false}
+                onSubmitEditing={sendMessage}
+              />
+              <Button
+                mode="contained"
+                onPress={sendMessage}
+                loading={sending}
+                disabled={sending || !inputText.trim()}
+              >
+                发送
+              </Button>
+            </>
+          )}
+        </View>
+      </KeyboardAvoidingView>
+    </Pressable>
   );
 }

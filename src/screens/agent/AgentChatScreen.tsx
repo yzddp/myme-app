@@ -11,6 +11,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Pressable,
+  Keyboard,
 } from "react-native";
 import {
   Text,
@@ -202,6 +204,7 @@ export default function AgentChatScreen() {
           flexDirection: "row",
           alignItems: "center",
           padding: 12,
+          paddingBottom: Math.max(insets.bottom, 12),
           backgroundColor: colors.surface,
           borderTopWidth: 1,
           borderTopColor: colors.border,
@@ -209,8 +212,9 @@ export default function AgentChatScreen() {
         input: {
           flex: 1,
           marginRight: 8,
-          maxHeight: 100,
+          height: 44,
           backgroundColor: colors.background,
+          textAlignVertical: "center",
         },
       }),
     [colors, insets],
@@ -248,57 +252,64 @@ export default function AgentChatScreen() {
   );
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={90}
-    >
-      <AppHeader
-        title={sessionTitle}
-        leftIcon="arrow-left"
-        onLeftPress={() => navigation.goBack()}
-        rightIcon="history"
-        onRightPress={() => navigation.navigate("AgentSessionList")}
-        centerTitle
-      />
+    <Pressable style={styles.container} onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 24}
+      >
+        <AppHeader
+          title={sessionTitle}
+          leftIcon="arrow-left"
+          onLeftPress={() => navigation.goBack()}
+          rightIcon="history"
+          onRightPress={() => navigation.navigate("AgentSessionList")}
+          centerTitle
+        />
 
-      {loading ? (
-        <View style={styles.loading}>
-          <ActivityIndicator size="large" color={colors.primary} />
+        {loading ? (
+          <View style={styles.loading}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        ) : (
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            renderItem={renderMessage}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.messageList}
+            keyboardShouldPersistTaps="handled"
+            onContentSizeChange={scrollToBottom}
+          />
+        )}
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            value={inputText}
+            onChangeText={setInputText}
+            placeholder="输入消息..."
+            style={styles.input}
+            mode="outlined"
+            outlineColor={colors.border}
+            activeOutlineColor={colors.primary}
+            multiline={false}
+            maxLength={500}
+            editable={!sending}
+            returnKeyType="send"
+            blurOnSubmit={false}
+            onSubmitEditing={sendMessage}
+          />
+          <IconButton
+            icon="send"
+            mode="contained"
+            containerColor={colors.primary}
+            iconColor={colors.textOnPrimary}
+            size={24}
+            onPress={sendMessage}
+            disabled={!inputText.trim() || sending}
+          />
         </View>
-      ) : (
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.messageList}
-        />
-      )}
-
-      <View style={styles.inputContainer}>
-        <TextInput
-          value={inputText}
-          onChangeText={setInputText}
-          placeholder="输入消息..."
-          style={styles.input}
-          mode="outlined"
-          outlineColor={colors.border}
-          activeOutlineColor={colors.primary}
-          multiline
-          maxLength={500}
-          editable={!sending}
-        />
-        <IconButton
-          icon="send"
-          mode="contained"
-          containerColor={colors.primary}
-          iconColor={colors.textOnPrimary}
-          size={24}
-          onPress={sendMessage}
-          disabled={!inputText.trim() || sending}
-        />
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </Pressable>
   );
 }

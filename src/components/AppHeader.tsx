@@ -21,7 +21,7 @@ export default function AppHeader({
   onLeftPress,
   rightIcon,
   onRightPress,
-  centerTitle = false,
+  centerTitle = true,
 }: AppHeaderProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -106,8 +106,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "bold",
+    fontSize: 20,
+    fontWeight: "600",
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 14,
