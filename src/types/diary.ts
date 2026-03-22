@@ -14,7 +14,7 @@ export type DiaryPeriodType =
   | "yearly"
   | "custom";
 
-// 通知日期类型
+// 调度日期类型
 export type NotificationDay =
   | "mon"
   | "tue"
@@ -22,8 +22,7 @@ export type NotificationDay =
   | "thu"
   | "fri"
   | "sat"
-  | "sun"
-  | "all";
+  | "sun";
 
 // 日记实体
 export interface DiaryEntry {
@@ -135,19 +134,6 @@ export interface AnalysisReportListResponse {
   limit: number;
 }
 
-// 日记分析设置实体
-export interface DiaryAnalysisSettings {
-  id: string;
-  userId: string;
-  defaultPeriodType: DiaryPeriodType;
-  notificationEnabled: boolean;
-  notificationDay: NotificationDay | null;
-  notificationTime: string | null;
-  autoAnalyze: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export type DiaryScheduleDay = NotificationDay | "last" | number | `${number}`;
 
 export interface DiaryPeriodSetting {
@@ -169,15 +155,6 @@ export interface UpdateDiaryAnalyzeSettingsRequest {
   weekly?: DiaryPeriodSetting;
   monthly?: DiaryPeriodSetting;
   yearly?: DiaryPeriodSetting;
-}
-
-// 更新分析设置请求
-export interface UpdateAnalysisSettingsRequest {
-  defaultPeriodType?: DiaryPeriodType;
-  notificationEnabled?: boolean;
-  notificationDay?: NotificationDay;
-  notificationTime?: string;
-  autoAnalyze?: boolean;
 }
 
 // 摘要生成响应

@@ -238,8 +238,8 @@ export default function DiaryAnalysisSettingsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <AppHeader
-        title="日记分析设置"
-        subtitle="像 iOS 设置页一样逐项展开，修改后自动保存"
+        title="日记设置"
+        subtitle="设置日报、周报、月报、年报的执行节奏"
         leftIcon="arrow-left"
         onLeftPress={() => navigation.goBack()}
       />
@@ -254,12 +254,12 @@ export default function DiaryAnalysisSettingsScreen() {
             },
           ]}
         >
-          <Text style={[styles.heroTitle, { color: colors.textPrimary }]}>
-            分析归档节奏
-          </Text>
-          <Text style={[styles.heroText, { color: colors.textSecondary }]}>
-            日报、周报、月报、年报彼此独立；关闭后只收起配置，不清空已有选择。
-          </Text>
+            <Text style={[styles.heroTitle, { color: colors.textPrimary }]}> 
+              分析归档节奏
+            </Text>
+            <Text style={[styles.heroText, { color: colors.textSecondary }]}> 
+              这里只保存分析执行设置，不包含任何提醒开关；关闭后只收起配置，不清空已有选择。
+            </Text>
           <HelperText type={savingState === "error" ? "error" : "info"} visible>
             {saveStatusText}
           </HelperText>

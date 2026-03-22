@@ -40,7 +40,6 @@ import ProfileEditScreen from "../screens/settings/ProfileEditScreen";
 import UserAvatarScreen from "../screens/settings/UserAvatarScreen";
 import MyDataScreen from "../screens/settings/MyDataScreen";
 import ThemeScreen from "../screens/settings/ThemeScreen";
-import NotificationSettingsScreen from "../screens/settings/NotificationSettingsScreen";
 import SecurityScreen from "../screens/settings/SecurityScreen";
 import AboutScreen from "../screens/settings/AboutScreen";
 import FeedbackScreen from "../screens/settings/FeedbackScreen";
@@ -140,10 +139,6 @@ function ProfileStackNavigator() {
       />
       <ProfileStack.Screen name="Permissions" component={PermissionsScreen} />
       <ProfileStack.Screen name="Theme" component={ThemeScreen} />
-      <ProfileStack.Screen
-        name="NotificationSettings"
-        component={NotificationSettingsScreen}
-      />
       <ProfileStack.Screen name="Security" component={SecurityScreen} />
       <ProfileStack.Screen name="About" component={AboutScreen} />
       <ProfileStack.Screen name="Feedback" component={FeedbackScreen} />

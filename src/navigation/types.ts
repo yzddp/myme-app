@@ -66,7 +66,6 @@ export type ProfileStackParamList = {
   A2AChat: { relationId: string };
   A2AAdd: undefined;
   Theme: undefined;
-  NotificationSettings: undefined;
   Security: undefined;
   About: undefined;
   Feedback: undefined;

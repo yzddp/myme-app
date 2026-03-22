@@ -25,6 +25,7 @@ import { navigationRef, resetToAuth } from "../../navigation/navigationRef";
 import AppHeader from "../../components/AppHeader";
 import { confirmAction } from "../../utils/confirm";
 import { resolveAvatarUrl } from "../../utils/avatar";
+import { useLanguage } from "../../i18n";
 
 type NavigationProp = NativeStackNavigationProp<ProfileStackParamList>;
 
@@ -40,6 +41,7 @@ export default function ProfileScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { user, logout, updateUser } = useAuthStore();
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const insets = useSafeAreaInsets();
 
   const loadProfile = useCallback(async () => {
@@ -68,10 +70,10 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     const confirmed = await confirmAction({
-      title: "退出登录",
-      message: "确定要退出登录吗？",
-      confirmText: "确定",
-      cancelText: "取消",
+      title: t("profile.logoutTitle"),
+      message: t("profile.logoutMessage"),
+      confirmText: t("common.confirm"),
+      cancelText: t("common.cancel"),
       destructive: true,
     });
 
@@ -82,7 +84,8 @@ export default function ProfileScreen() {
     doLogout();
   };
 
-  const displayName = user?.nickname || user?.name || user?.username || "用户";
+  const displayName =
+    user?.nickname || user?.name || user?.username || t("profile.userFallback");
   const avatarLabel = displayName.substring(0, 2).toUpperCase() || "我";
   const avatarUri = resolveAvatarUrl(user?.avatar);
 
@@ -111,7 +114,7 @@ export default function ProfileScreen() {
       contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
     >
       {/* ─── 头部 ─── */}
-      <AppHeader title="我的" />
+      <AppHeader title={t("profile.title")} />
 
       {/* ─── 头像 + 昵称 ─── */}
       <View style={styles.profileSection}>
@@ -129,21 +132,21 @@ export default function ProfileScreen() {
         <Text style={[styles.username, { color: colors.textPrimary }]}>
           {displayName}
         </Text>
-        <Text style={[styles.subline, { color: colors.textSecondary }]}>
-          @{user?.username || "未设置用户名"}
+        <Text style={[styles.subline, { color: colors.textSecondary }]}> 
+          @{user?.username || t("profile.usernameUnset")}
         </Text>
       </View>
 
       {/* ─── 菜单列表 ─── */}
       <Card style={[styles.card, { backgroundColor: colors.surface }]}>
         <Card.Content style={styles.cardContent}>
-          {mkItem("我的数据", "database", () => navigation.navigate("MyData"))}
+          {mkItem(t("profile.myData"), "database", () => navigation.navigate("MyData"))}
         </Card.Content>
       </Card>
 
       <Card style={[styles.card, { backgroundColor: colors.surface }]}>
         <Card.Content style={styles.cardContent}>
-          {mkItem("资料", "account-edit", () =>
+          {mkItem(t("profile.profile"), "account-edit", () =>
             navigation.navigate("ProfileEdit"),
           )}
         </Card.Content>
@@ -151,27 +154,27 @@ export default function ProfileScreen() {
 
       <Card style={[styles.card, { backgroundColor: colors.surface }]}>
         <Card.Content style={styles.cardContent}>
-          {mkItem("主题", "palette", () => navigation.navigate("Theme"))}
+          {mkItem(t("profile.theme"), "palette", () => navigation.navigate("Theme"))}
         </Card.Content>
       </Card>
 
       <Card style={[styles.card, { backgroundColor: colors.surface }]}>
         <Card.Content style={styles.cardContent}>
-          {mkItem("通知", "bell", () =>
-            navigation.navigate("NotificationSettings"),
+          {mkItem(t("profile.diarySettings"), "book-cog", () =>
+            navigation.navigate("DiaryAnalysisSettings" as never),
           )}
         </Card.Content>
       </Card>
 
       <Card style={[styles.card, { backgroundColor: colors.surface }]}>
         <Card.Content style={styles.cardContent}>
-          {mkItem("安全", "shield-lock", () => navigation.navigate("Security"))}
+          {mkItem(t("profile.security"), "shield-lock", () => navigation.navigate("Security"))}
         </Card.Content>
       </Card>
 
       <Card style={[styles.card, { backgroundColor: colors.surface }]}>
         <Card.Content style={styles.cardContent}>
-          {mkItem("意见反馈", "message-text", () =>
+          {mkItem(t("profile.feedback"), "message-text", () =>
             navigation.navigate("Feedback"),
           )}
         </Card.Content>
@@ -179,7 +182,7 @@ export default function ProfileScreen() {
 
       <Card style={[styles.card, { backgroundColor: colors.surface }]}>
         <Card.Content style={styles.cardContent}>
-          {mkItem("关于", "information", () => navigation.navigate("About"))}
+          {mkItem(t("profile.about"), "information", () => navigation.navigate("About"))}
         </Card.Content>
       </Card>
 
@@ -192,7 +195,7 @@ export default function ProfileScreen() {
         onPress={handleLogout}
         android_ripple={{ color: "#c0392b" }}
       >
-        <Text style={styles.logoutText}>退出登录</Text>
+        <Text style={styles.logoutText}>{t("profile.logout")}</Text>
       </Pressable>
 
       <Text style={[styles.version, { color: colors.textTertiary }]}>

@@ -11,11 +11,11 @@ import {
   CreateDiaryRequest, 
   UpdateDiaryRequest,
   DiaryAnalysisReport,
-  DiaryAnalysisSettings,
+  DiaryAnalyzeSettingsV2,
   DiaryQueryParams,
   DiaryPeriodType,
   GenerateAnalysisRequest,
-  UpdateAnalysisSettingsRequest,
+  UpdateDiaryAnalyzeSettingsRequest,
 } from '../types/diary';
 
 // 日记状态接口
@@ -34,7 +34,7 @@ interface DiaryState {
   analysisReports: DiaryAnalysisReport[];
   currentReport: DiaryAnalysisReport | null;
   latestReport: DiaryAnalysisReport | null;
-  settings: DiaryAnalysisSettings | null;
+  settings: DiaryAnalyzeSettingsV2 | null;
   isAnalyzing: boolean;
 
   // Actions - Diary
@@ -54,7 +54,7 @@ interface DiaryState {
   loadReportHistory: (page?: number, limit?: number) => Promise<void>;
   getReport: (id: string) => Promise<DiaryAnalysisReport | null>;
   loadSettings: () => Promise<void>;
-  updateSettings: (settings: UpdateAnalysisSettingsRequest) => Promise<DiaryAnalysisSettings | null>;
+  updateSettings: (settings: UpdateDiaryAnalyzeSettingsRequest) => Promise<DiaryAnalyzeSettingsV2 | null>;
   
   // Reset
   reset: () => void;
@@ -338,7 +338,7 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
   loadSettings: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await diaryAnalysisService.getSettings();
+      const response = await diaryAnalysisService.getAnalyzeSettings();
       set({ 
         settings: response.settings,
         isLoading: false 
@@ -352,10 +352,10 @@ export const useDiaryStore = create<DiaryState>((set, get) => ({
   },
 
   // 更新分析设置
-  updateSettings: async (settings: UpdateAnalysisSettingsRequest) => {
+  updateSettings: async (settings: UpdateDiaryAnalyzeSettingsRequest) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await diaryAnalysisService.updateSettings(settings);
+      const response = await diaryAnalysisService.updateAnalyzeSettings(settings);
       set({ 
         settings: response.settings,
         isLoading: false 

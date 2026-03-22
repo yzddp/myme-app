@@ -8,9 +8,6 @@ import type {
   DiaryAnalysisReport,
   DiaryPeriodType,
   GenerateAnalysisRequest,
-  DiaryAnalysisSettings,
-  UpdateAnalysisSettingsRequest,
-  AnalysisReportListResponse,
   DiaryAnalyzeSettingsV2,
   UpdateDiaryAnalyzeSettingsRequest,
 } from "../types/diary";
@@ -25,10 +22,6 @@ interface AnalysisHistoryResponse {
   total: number;
   page: number;
   limit: number;
-}
-
-interface AnalysisSettingsResponse {
-  settings: DiaryAnalysisSettings;
 }
 
 interface AnalysisSettingsV2Response {
@@ -62,26 +55,10 @@ function normalizeAnalyzeSettings(raw: any): DiaryAnalyzeSettingsV2 {
   }
 
   return {
-    daily: {
-      enabled: Boolean(raw?.autoAnalyze),
-      time: raw?.notificationTime ?? "21:00",
-    },
-    weekly: {
-      enabled: Boolean(raw?.notificationEnabled),
-      day: raw?.notificationDay ?? "sun",
-      time: raw?.notificationTime ?? "21:00",
-    },
-    monthly: {
-      enabled: false,
-      day: "1",
-      time: "21:00",
-    },
-    yearly: {
-      enabled: false,
-      month: 1,
-      day: "1",
-      time: "21:00",
-    },
+    daily: { enabled: false, time: "22:00" },
+    weekly: { enabled: true, day: "sun", time: "20:00" },
+    monthly: { enabled: true, day: "last", time: "20:00" },
+    yearly: { enabled: false, month: 12, day: "31", time: "20:00" },
   };
 }
 
@@ -172,16 +149,6 @@ export const diaryAnalysisService = {
     return apiService.delete(`${DIARY_ANALYSIS_ENDPOINTS.analyze}/${reportId}`);
   },
 
-  /**
-   * 获取分析设置
-   * @returns 分析设置
-   */
-  async getSettings(): Promise<AnalysisSettingsResponse> {
-    return apiService.get<AnalysisSettingsResponse>(
-      DIARY_ANALYSIS_ENDPOINTS.settings,
-    );
-  },
-
   async getAnalyzeSettings(): Promise<AnalysisSettingsV2Response> {
     const response = await apiService.get<any>(
       DIARY_ANALYSIS_ENDPOINTS.settings,
@@ -189,20 +156,6 @@ export const diaryAnalysisService = {
     return {
       settings: normalizeAnalyzeSettings(response.settings ?? response),
     };
-  },
-
-  /**
-   * 更新分析设置
-   * @param settings 更新数据
-   * @returns 更新后的设置
-   */
-  async updateSettings(
-    settings: UpdateAnalysisSettingsRequest,
-  ): Promise<AnalysisSettingsResponse> {
-    return apiService.put<AnalysisSettingsResponse>(
-      DIARY_ANALYSIS_ENDPOINTS.settings,
-      settings,
-    );
   },
 
   async updateAnalyzeSettings(
@@ -217,38 +170,6 @@ export const diaryAnalysisService = {
     };
   },
 
-  /**
-   * 启用/禁用自动分析
-   * @param autoAnalyze 是否自动分析
-   * @returns 更新后的设置
-   */
-  async setAutoAnalyze(
-    autoAnalyze: boolean,
-  ): Promise<AnalysisSettingsResponse> {
-    return this.updateSettings({ autoAnalyze });
-  },
-
-  /**
-   * 启用/禁用通知
-   * @param notificationEnabled 是否启用通知
-   * @returns 更新后的设置
-   */
-  async setNotification(
-    notificationEnabled: boolean,
-  ): Promise<AnalysisSettingsResponse> {
-    return this.updateSettings({ notificationEnabled });
-  },
-
-  /**
-   * 设置默认分析周期
-   * @param periodType 周期类型
-   * @returns 更新后的设置
-   */
-  async setDefaultPeriod(
-    periodType: DiaryPeriodType,
-  ): Promise<AnalysisSettingsResponse> {
-    return this.updateSettings({ defaultPeriodType: periodType });
-  },
 };
 
 // 导出默认对象
