@@ -105,7 +105,13 @@ api.interceptors.response.use(
 
     // 统一错误处理
     const errorMessage = getErrorMessage(error, originalRequest.url);
-    return Promise.reject(new Error(errorMessage));
+    const errorCode = getErrorCode(error);
+    return Promise.reject(
+      new ApiRequestError(errorMessage, {
+        status: error.response?.status,
+        code: errorCode,
+      }),
+    );
   },
 );
 
@@ -116,7 +122,7 @@ const getErrorMessage = (error: AxiosError, requestUrl?: string): string => {
   if (error.response) {
     const status = error.response.status;
     const data = error.response.data as any;
-    const message = data?.message || "";
+    const message = data?.error?.message || data?.message || "";
 
     // 登录接口的特殊错误处理
     if (
@@ -133,7 +139,7 @@ const getErrorMessage = (error: AxiosError, requestUrl?: string): string => {
 
     switch (status) {
       case 400:
-        return data?.message || "请求参数错误";
+        return data?.error?.message || data?.message || "请求参数错误";
       case 401:
         return "登录已过期，请重新登录";
       case 403:
@@ -141,17 +147,22 @@ const getErrorMessage = (error: AxiosError, requestUrl?: string): string => {
       case 404:
         return "请求的资源不存在";
       case 409:
-        return data?.message || "资源冲突";
+        return data?.error?.message || data?.message || "资源冲突";
       case 500:
         return "服务器内部错误";
       default:
-        return data?.message || "请求失败";
+        return data?.error?.message || data?.message || "请求失败";
     }
   } else if (error.request) {
     return "网络连接失败，请检查网络";
   } else {
     return error.message || "请求失败";
   }
+};
+
+const getErrorCode = (error: AxiosError): string | undefined => {
+  const data = error.response?.data as any;
+  return data?.error?.code || data?.code;
 };
 
 /**

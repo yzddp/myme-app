@@ -17,7 +17,7 @@ const USER_ENDPOINTS = {
 };
 
 export interface UpdateProfileRequest {
-  username?: string;
+  email?: string;
   name?: string;
   nickname?: string;
   gender?: "male" | "female" | "other" | "";
