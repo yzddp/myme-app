@@ -13,7 +13,6 @@ import {
   Alert,
   Pressable,
   Keyboard,
-  type KeyboardEvent,
 } from "react-native";
 import {
   Text,
@@ -48,12 +47,12 @@ export default function AgentChatScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
   const [sessionTitle, setSessionTitle] = useState("AI对话");
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(
     sessionId || null,
   );
   const flatListRef = useRef<FlatList>(null);
+  const inputRef = useRef<any>(null);
 
   useEffect(() => {
     if (currentSessionId) {
@@ -79,32 +78,26 @@ export default function AgentChatScreen() {
   }, [currentSessionId]);
 
   useEffect(() => {
-    if (Platform.OS !== "android") {
-      return;
-    }
-
-    const handleKeyboardShow = (event: KeyboardEvent) => {
-      setKeyboardOffset(event.endCoordinates?.height ?? 0);
-    };
-
-    const handleKeyboardHide = () => {
-      setKeyboardOffset(0);
+    const handleKeyboardChange = () => {
+      setTimeout(() => {
+        scrollToBottom();
+      }, 120);
     };
 
     const showSubscription = Keyboard.addListener(
       "keyboardDidShow",
-      handleKeyboardShow,
+      handleKeyboardChange,
     );
     const hideSubscription = Keyboard.addListener(
       "keyboardDidHide",
-      handleKeyboardHide,
+      handleKeyboardChange,
     );
 
     return () => {
       showSubscription.remove();
       hideSubscription.remove();
     };
-  }, []);
+  }, [messages.length]);
 
   const loadMessages = async (sid: string) => {
     try {
@@ -144,6 +137,13 @@ export default function AgentChatScreen() {
     setInputText("");
     setSending(true);
 
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+    });
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 80);
+
     setTimeout(() => scrollToBottom(), 50);
 
     try {
@@ -165,10 +165,16 @@ export default function AgentChatScreen() {
 
       setMessages((prev) => [...prev, agentReply]);
       setTimeout(() => scrollToBottom(), 100);
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 80);
     } catch (error) {
       console.error("Failed to send message:", error);
       Alert.alert("错误", "消息发送失败");
       setMessages((prev) => prev.filter((m) => m.id !== userMessage.id));
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 80);
     } finally {
       setSending(false);
     }
@@ -193,6 +199,17 @@ export default function AgentChatScreen() {
         messageContainer: {
           marginBottom: 12,
           maxWidth: "85%",
+        },
+        messageRow: {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 6,
+        },
+        userMessageRow: {
+          justifyContent: "flex-end",
+        },
+        agentMessageRow: {
+          justifyContent: "flex-start",
         },
         userMessage: {
           alignSelf: "flex-end",
@@ -225,14 +242,14 @@ export default function AgentChatScreen() {
         messageTime: {
           fontSize: 11,
           color: colors.textTertiary,
-          marginTop: 4,
-          marginHorizontal: 4,
+          width: 42,
+          textAlign: "center",
         },
         inputContainer: {
           flexDirection: "row",
           alignItems: "center",
-          padding: 12,
-          marginBottom: Platform.OS === "android" ? keyboardOffset : 0,
+          paddingHorizontal: 10,
+          paddingVertical: 8,
           backgroundColor: colors.surface,
           borderTopWidth: 1,
           borderTopColor: colors.border,
@@ -240,7 +257,7 @@ export default function AgentChatScreen() {
         input: {
           flex: 1,
           marginRight: 8,
-          height: 44,
+          height: 38,
           backgroundColor: colors.background,
           textAlignVertical: "center",
         },
@@ -257,25 +274,44 @@ export default function AgentChatScreen() {
     >
       <View
         style={[
-          styles.messageBubble,
-          item.sender === "user" ? styles.userBubble : styles.agentBubble,
+          styles.messageRow,
+          item.sender === "user" ? styles.userMessageRow : styles.agentMessageRow,
         ]}
       >
-        <Text
+        {item.sender === "user" ? (
+          <Text style={styles.messageTime}>
+            {new Date(item.createdAt).toLocaleTimeString("zh-CN", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </Text>
+        ) : null}
+
+        <View
           style={[
-            styles.messageText,
-            item.sender === "user" ? styles.userText : styles.agentText,
+            styles.messageBubble,
+            item.sender === "user" ? styles.userBubble : styles.agentBubble,
           ]}
         >
-          {item.content}
-        </Text>
+          <Text
+            style={[
+              styles.messageText,
+              item.sender === "user" ? styles.userText : styles.agentText,
+            ]}
+          >
+            {item.content}
+          </Text>
+        </View>
+
+        {item.sender === "agent" ? (
+          <Text style={styles.messageTime}>
+            {new Date(item.createdAt).toLocaleTimeString("zh-CN", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </Text>
+        ) : null}
       </View>
-      <Text style={styles.messageTime}>
-        {new Date(item.createdAt).toLocaleTimeString("zh-CN", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })}
-      </Text>
     </View>
   );
 
@@ -283,9 +319,8 @@ export default function AgentChatScreen() {
     <Pressable style={styles.container} onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        enabled={Platform.OS === "ios"}
-        keyboardVerticalOffset={90}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
         <AppHeader
           title={sessionTitle}
@@ -312,6 +347,7 @@ export default function AgentChatScreen() {
 
         <View style={styles.inputContainer}>
           <TextInput
+            ref={inputRef}
             value={inputText}
             onChangeText={setInputText}
             placeholder="输入消息..."
@@ -321,9 +357,10 @@ export default function AgentChatScreen() {
             activeOutlineColor={colors.primary}
             multiline={false}
             maxLength={500}
-            editable={!sending}
+            editable
             returnKeyType="send"
             blurOnSubmit={false}
+            submitBehavior="submit"
             onSubmitEditing={sendMessage}
           />
           <IconButton

@@ -8,7 +8,6 @@ import {
   Pressable,
   StyleSheet,
   View,
-  type KeyboardEvent,
 } from "react-native";
 import {
   Button,
@@ -43,40 +42,34 @@ export default function A2AChatScreen() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [senderType, setSenderType] = useState<A2ASenderType>("user");
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
   const flatListRef = useRef<FlatList<A2AMessage>>(null);
+  const inputRef = useRef<any>(null);
 
   useEffect(() => {
     void loadPage();
   }, [relationId]);
 
   useEffect(() => {
-    if (Platform.OS !== "android") {
-      return;
-    }
-
-    const handleKeyboardShow = (event: KeyboardEvent) => {
-      setKeyboardOffset(event.endCoordinates?.height ?? 0);
-    };
-
-    const handleKeyboardHide = () => {
-      setKeyboardOffset(0);
+    const handleKeyboardChange = () => {
+      setTimeout(() => {
+        scrollToBottom();
+      }, 120);
     };
 
     const showSubscription = Keyboard.addListener(
       "keyboardDidShow",
-      handleKeyboardShow,
+      handleKeyboardChange,
     );
     const hideSubscription = Keyboard.addListener(
       "keyboardDidHide",
-      handleKeyboardHide,
+      handleKeyboardChange,
     );
 
     return () => {
       showSubscription.remove();
       hideSubscription.remove();
     };
-  }, []);
+  }, [messages.length]);
 
   const styles = useMemo(
     () =>
@@ -109,6 +102,13 @@ export default function A2AChatScreen() {
         loading: { flex: 1, justifyContent: "center", alignItems: "center" },
         messageList: { padding: 16, paddingBottom: 24 },
         messageWrap: { marginBottom: 14, maxWidth: "85%" },
+        messageRow: {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 6,
+        },
+        myMessageRow: { justifyContent: "flex-end" },
+        peerMessageRow: { justifyContent: "flex-start" },
         myMessage: { alignSelf: "flex-end" },
         peerMessage: { alignSelf: "flex-start" },
         bubble: { padding: 12, borderRadius: 18 },
@@ -121,19 +121,18 @@ export default function A2AChatScreen() {
           borderBottomLeftRadius: 6,
         },
         messageText: { fontSize: 15, lineHeight: 22 },
-        meta: { marginTop: 6, flexDirection: "row", gap: 6 },
-        metaText: { fontSize: 11 },
+        metaText: { fontSize: 11, width: 42, textAlign: "center" },
         composer: {
-          padding: 12,
-          marginBottom: Platform.OS === "android" ? keyboardOffset : 0,
+          paddingHorizontal: 10,
+          paddingVertical: 8,
           borderTopWidth: 1,
           borderTopColor: colors.border,
           backgroundColor: colors.surface,
         },
         input: {
           backgroundColor: colors.background,
-          marginBottom: 10,
-          height: 44,
+          marginBottom: 8,
+          height: 38,
         },
       }),
     [colors],
@@ -195,6 +194,14 @@ export default function A2AChatScreen() {
     setMessages((prev) => [...prev, optimisticMessage]);
     setInputText("");
     setSending(true);
+
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+    });
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 80);
+
     setTimeout(scrollToBottom, 50);
 
     try {
@@ -205,11 +212,17 @@ export default function A2AChatScreen() {
       );
       const refreshed = await a2aService.getMessages(relationId);
       setMessages(refreshed.messages ?? []);
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 80);
     } catch (error) {
       setMessages((prev) =>
         prev.filter((message) => message.id !== optimisticMessage.id),
       );
       Alert.alert("错误", "消息发送失败");
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 80);
     } finally {
       setSending(false);
     }
@@ -229,30 +242,44 @@ export default function A2AChatScreen() {
       >
         <View
           style={[
-            styles.bubble,
-            mineByCurrentUser ? styles.myBubble : styles.peerBubble,
+            styles.messageRow,
+            mineByCurrentUser ? styles.myMessageRow : styles.peerMessageRow,
           ]}
         >
-          <Text
-            style={{
-              color: mineByCurrentUser
-                ? colors.userBubbleText
-                : colors.agentBubbleText,
-            }}
+          {mineByCurrentUser ? (
+            <Text style={[styles.metaText, { color: colors.textTertiary }]}> 
+              {new Date(item.createdAt).toLocaleTimeString("zh-CN", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </Text>
+          ) : null}
+
+          <View
+            style={[
+              styles.bubble,
+              mineByCurrentUser ? styles.myBubble : styles.peerBubble,
+            ]}
           >
-            {item.content}
-          </Text>
-        </View>
-        <View style={styles.meta}>
-          <Text style={[styles.metaText, { color: colors.primary }]}>
-            {item.senderName || item.senderType}
-          </Text>
-          <Text style={[styles.metaText, { color: colors.textTertiary }]}>
-            {new Date(item.createdAt).toLocaleTimeString("zh-CN", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </Text>
+            <Text
+              style={{
+                color: mineByCurrentUser
+                  ? colors.userBubbleText
+                  : colors.agentBubbleText,
+              }}
+            >
+              {item.content}
+            </Text>
+          </View>
+
+          {!mineByCurrentUser ? (
+            <Text style={[styles.metaText, { color: colors.textTertiary }]}> 
+              {new Date(item.createdAt).toLocaleTimeString("zh-CN", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </Text>
+          ) : null}
         </View>
       </View>
     );
@@ -262,9 +289,8 @@ export default function A2AChatScreen() {
     <Pressable style={styles.container} onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        enabled={Platform.OS === "ios"}
-        keyboardVerticalOffset={88}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 88 : 0}
       >
         <AppHeader
           title={
@@ -363,6 +389,7 @@ export default function A2AChatScreen() {
           ) : (
             <>
               <TextInput
+                ref={inputRef}
                 value={inputText}
                 onChangeText={setInputText}
                 placeholder={
@@ -373,9 +400,10 @@ export default function A2AChatScreen() {
                 mode="outlined"
                 style={styles.input}
                 multiline={false}
-                editable={!sending}
+                editable
                 returnKeyType="send"
                 blurOnSubmit={false}
+                submitBehavior="submit"
                 onSubmitEditing={sendMessage}
               />
               <Button
