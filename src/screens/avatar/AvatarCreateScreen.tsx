@@ -195,6 +195,18 @@ export default function AvatarCreateScreen() {
           </Card>
         ) : null}
 
+        <Card style={[styles.guideCard, { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
+          <Card.Content>
+            <Text style={[styles.guideTitle, { color: colors.primary }]}>
+              填写引导
+            </Text>
+            <Text style={[styles.guideText, { color: colors.textPrimary }]}>
+              分身的名称和角色模板，是给对方看到的信息。{"\n"}
+              例如：你创建了一个名为"老公"的分身，选择了"老公"模板 -- 这个分身是给你的老婆使用的，你老婆打开后看到的就是"老公"在跟她聊天。
+            </Text>
+          </Card.Content>
+        </Card>
+
         <TextInput
           label="分身名称"
           value={name}
@@ -390,6 +402,20 @@ const styles = StyleSheet.create({
   content: { padding: 16, gap: 16 },
   input: { marginBottom: 4 },
   sectionCard: { borderRadius: 20 },
+  guideCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    marginBottom: 4,
+  },
+  guideTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    marginBottom: 6,
+  },
+  guideText: {
+    fontSize: 13,
+    lineHeight: 20,
+  },
   sectionTitle: { fontSize: 18, fontWeight: "700", marginBottom: 6 },
   sectionHint: { fontSize: 13, lineHeight: 20, marginBottom: 12 },
   chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },

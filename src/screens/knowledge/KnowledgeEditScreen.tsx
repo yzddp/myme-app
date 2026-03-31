@@ -6,11 +6,11 @@
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, ScrollView, TextInput } from "react-native";
 import { Text, Button, Card, IconButton } from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
 import { useKnowledgeStore } from "../../store/knowledgeStore";
 import { ModuleSelector } from "../../components";
 import type { KnowledgeModule, KnowledgeItem } from "../../types/knowledge";
+import AppHeader from "../../components/AppHeader";
 
 interface KnowledgeEditScreenProps {
   navigation?: any;
@@ -68,21 +68,15 @@ export const KnowledgeEditScreen: React.FC<KnowledgeEditScreenProps> = ({
   };
 
   return (
-    <SafeAreaView style={styles(colors).container}>
+    <View style={styles(colors).container}>
+      <AppHeader
+        title={item ? "编辑知识" : "添加知识"}
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation?.goBack()}
+        rightIcon="check"
+        onRightPress={handleSave}
+      />
       <ScrollView style={styles(colors).scrollView}>
-        <View style={styles(colors).header}>
-          <IconButton
-            icon="arrow-left"
-            iconColor={colors.primary}
-            size={24}
-            onPress={() => navigation?.goBack()}
-            style={{ marginLeft: -8 }}
-          />
-          <Text style={styles(colors).title}>
-            {item ? "编辑知识" : "添加知识"}
-          </Text>
-        </View>
-
         <View style={styles(colors).content}>
           {/* 模块选择 */}
           <Text style={styles(colors).label}>选择分类</Text>
@@ -153,7 +147,7 @@ export const KnowledgeEditScreen: React.FC<KnowledgeEditScreenProps> = ({
           {item ? "保存修改" : "保存知识"}
         </Button>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -165,17 +159,6 @@ const styles = (colors: any) =>
     },
     scrollView: {
       flex: 1,
-    },
-    header: {
-      padding: 20,
-      paddingBottom: 8,
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    title: {
-      fontSize: 24,
-      fontWeight: "bold",
-      color: colors.textPrimary,
     },
     content: {
       paddingHorizontal: 20,

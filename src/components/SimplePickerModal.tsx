@@ -95,12 +95,11 @@ export default function SimplePickerModal({
     },
     optionLabelSelected: {
       color: colors.primary,
-      fontWeight: "700",
+      fontWeight: "600",
     },
     optionCheck: {
       fontSize: 16,
       color: colors.primary,
-      fontWeight: "700",
     },
     footer: {
       flexDirection: "row",
@@ -129,7 +128,7 @@ export default function SimplePickerModal({
               return (
                 <Pressable
                   key={option.value}
-                  style={[styles.option, selected && styles.selected]}
+                  style={styles.option}
                   onPress={() => {
                     onSelect(option.value);
                     onDismiss();
@@ -137,7 +136,6 @@ export default function SimplePickerModal({
                 >
                   <View style={styles.optionRow}>
                     <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]}>{option.label}</Text>
-                    {selected ? <Text style={styles.optionCheck}>✓</Text> : null}
                   </View>
                 </Pressable>
               );

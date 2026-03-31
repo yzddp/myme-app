@@ -11,20 +11,19 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
-import { Text, TextInput, Button, IconButton } from "react-native-paper";
+import { Text, TextInput, Button } from "react-native-paper";
 import { useAuthStore } from "../../store/authStore";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "../../navigation/types";
 import { authService } from "../../services/authService";
 import { useTheme } from "../../context/ThemeContext";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLanguage } from "../../i18n";
+import AppHeader from "../../components/AppHeader";
 
 export default function RegisterScreen() {
   const { colors } = useTheme();
   const { t } = useLanguage();
-  const insets = useSafeAreaInsets();
   const navigation =
     useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { login } = useAuthStore();
@@ -85,22 +84,7 @@ export default function RegisterScreen() {
     },
     scrollContent: {
       flexGrow: 1,
-      justifyContent: "center",
       padding: 24,
-    },
-    header: {
-      alignItems: "center",
-      marginBottom: 32,
-    },
-    title: {
-      fontSize: 32,
-      fontWeight: "bold",
-      color: colors.primary,
-    },
-    subtitle: {
-      fontSize: 16,
-      color: colors.textSecondary,
-      marginTop: 8,
     },
     form: {
       width: "100%",
@@ -137,20 +121,12 @@ export default function RegisterScreen() {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={{ paddingTop: insets.top, backgroundColor: colors.primary }}>
-        <IconButton
-          icon="arrow-left"
-          iconColor={colors.textOnPrimary}
-          size={24}
-          onPress={() => navigation.goBack()}
-        />
-      </View>
+      <AppHeader
+        title={t("auth.register.title")}
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation.goBack()}
+      />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Text style={styles.title}>{t("auth.register.title")}</Text>
-          <Text style={styles.subtitle}>{t("auth.register.subtitle")}</Text>
-        </View>
-
         <View style={styles.form}>
           <TextInput
             label={t("auth.register.username")}

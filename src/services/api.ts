@@ -19,6 +19,9 @@ export const API_URL =
 const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION || "/api/v1";
 const TIMEOUT = 10000;
 
+// AI 对话等长耗时请求需要更大的超时
+const AI_TIMEOUT = 60000;
+
 export class ApiRequestError extends Error {
   status?: number;
   code?: string;
@@ -248,4 +251,4 @@ export const apiService = {
 
 // 导出默认实例和工具
 export default api;
-export { TOKEN_KEY, REFRESH_TOKEN_KEY };
+export { TOKEN_KEY, REFRESH_TOKEN_KEY, AI_TIMEOUT };

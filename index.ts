@@ -1,3 +1,6 @@
+// 必须在所有其他导入之前加载，为 crypto-js / uuid 提供安全随机数
+import 'react-native-get-random-values';
+
 import { registerRootComponent } from 'expo';
 
 import App from './App';

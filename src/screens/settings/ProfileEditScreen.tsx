@@ -56,7 +56,7 @@ function PickerField({
           style={style}
           editable={false}
           disabled={disabled}
-          right={<TextInput.Icon icon="chevron-down" />}
+          right={<TextInput.Icon icon="chevron-down" onPress={onPress} />}
         />
       </View>
     </TouchableOpacity>

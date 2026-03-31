@@ -11,13 +11,13 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from "react-native";
-import { Text, Card, Button, FAB, IconButton } from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Text, Card, Button, FAB } from "react-native-paper";
 import { useTheme } from "../../context/ThemeContext";
 import { useKnowledgeStore } from "../../store/knowledgeStore";
 import { KnowledgeCard, ModuleSelector } from "../../components";
 import { KNOWLEDGE_MODULES } from "../../components/ModuleSelector";
 import type { KnowledgeModule } from "../../types/knowledge";
+import AppHeader from "../../components/AppHeader";
 
 interface KnowledgeListScreenProps {
   navigation?: any;
@@ -42,27 +42,34 @@ export const KnowledgeListScreen: React.FC<KnowledgeListScreenProps> = ({
     delete: deleteItem, // use the delete action from store
   } = useKnowledgeStore();
 
+  // 仅首次加载模块列表
   useEffect(() => {
     loadModules();
   }, []);
 
+  // 从路由参数设置默认模块（仅首次）
+  const initialModuleApplied = React.useRef(false);
   useEffect(() => {
     const defaultModule = route?.params?.module;
-    if (defaultModule) {
+    if (defaultModule && !initialModuleApplied.current) {
+      initialModuleApplied.current = true;
       setCurrentModule(defaultModule as KnowledgeModule);
     }
   }, [route?.params?.module]);
 
+  // 页面聚焦时静默刷新数据，不触发模块切换
   useEffect(() => {
     if (!navigation) return;
     const unsubscribe = navigation.addListener("focus", () => {
-      loadModules();
       const latestModule = useKnowledgeStore.getState().currentModule;
-      if (latestModule) useKnowledgeStore.getState().loadByModule(latestModule);
+      if (latestModule) {
+        useKnowledgeStore.getState().loadByModule(latestModule);
+      }
     });
     return unsubscribe;
   }, [navigation]);
 
+  // 切换模块时加载对应数据
   useEffect(() => {
     if (currentModule) {
       loadByModule(currentModule);
@@ -101,20 +108,12 @@ export const KnowledgeListScreen: React.FC<KnowledgeListScreenProps> = ({
   };
 
   return (
-    <SafeAreaView
-      style={styles(colors).container}
-      edges={["left", "right", "bottom"]}
-    >
-      <View style={styles(colors).header}>
-        <IconButton
-          icon="arrow-left"
-          iconColor={colors.textOnPrimary}
-          size={24}
-          onPress={() => navigation?.goBack?.()}
-          style={styles(colors).backButton}
-        />
-        <Text style={styles(colors).title}>{getModuleTitle()}</Text>
-      </View>
+    <View style={styles(colors).container}>
+      <AppHeader
+        title={getModuleTitle()}
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation?.goBack?.()}
+      />
 
       <ModuleSelector selected={currentModule} onSelect={handleModuleSelect} />
 
@@ -153,7 +152,7 @@ export const KnowledgeListScreen: React.FC<KnowledgeListScreenProps> = ({
         onPress={handleCreate}
         label="添加"
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -162,22 +161,6 @@ const styles = (colors: any) =>
     container: {
       flex: 1,
       backgroundColor: colors.background,
-    },
-    header: {
-      backgroundColor: colors.primary,
-      paddingTop: 8,
-      paddingBottom: 16,
-      paddingHorizontal: 8,
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    backButton: {
-      marginRight: 8,
-    },
-    title: {
-      fontSize: 24,
-      fontWeight: "bold",
-      color: colors.textOnPrimary,
     },
     list: {
       flex: 1,

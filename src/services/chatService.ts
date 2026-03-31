@@ -3,7 +3,7 @@
  * 对话服务 - 处理Agent对话功能
  */
 
-import { apiService } from './api';
+import { apiService, AI_TIMEOUT } from './api';
 import type {
   Session,
   SessionType,
@@ -59,13 +59,16 @@ export const chatService = {
    */
   async sendMessage(request: SendMessageRequest): Promise<SendMessageResponse> {
     const { sessionId } = request;
+    // AI 对话超时设为 60 秒（默认 10 秒对 AI 生成太短）
+    const config = { timeout: AI_TIMEOUT };
     if (sessionId) {
       return apiService.post<SendMessageResponse>(
         `${CHAT_ENDPOINTS.sessions}/${sessionId}/messages`,
-        { content: request.content }
+        { content: request.content },
+        config
       );
     }
-    return apiService.post<SendMessageResponse>(CHAT_ENDPOINTS.message, request);
+    return apiService.post<SendMessageResponse>(CHAT_ENDPOINTS.message, request, config);
   },
 
   /**

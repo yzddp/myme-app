@@ -198,12 +198,12 @@ export default function ProfileScreen() {
       <Pressable
         style={({ pressed }) => [
           styles.logoutButton,
-          { backgroundColor: pressed ? "#c0392b" : colors.error },
+          { backgroundColor: pressed ? colors.primaryDark : colors.error },
         ]}
         onPress={handleLogout}
-        android_ripple={{ color: "#c0392b" }}
+        android_ripple={{ color: colors.primaryDark }}
       >
-        <Text style={styles.logoutText}>{t("profile.logout")}</Text>
+        <Text style={[styles.logoutText, { color: colors.textOnPrimary }]}>{t("profile.logout")}</Text>
       </Pressable>
 
       <Text style={[styles.version, { color: colors.textTertiary }]}>
@@ -290,7 +290,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   logoutText: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "700",
   },

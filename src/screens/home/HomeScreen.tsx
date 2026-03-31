@@ -243,16 +243,16 @@ export default function HomeScreen() {
         <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
           <View style={styles.menuOverlay}>
             <TouchableWithoutFeedback>
-              <View style={[styles.menuBox, { backgroundColor: "#3A3A3C" }]}>
+              <View style={[styles.menuBox, { backgroundColor: colors.surfaceVariant }]}>
                 {/* 小箭头 */}
-                <View style={styles.menuArrow} />
+                <View style={[styles.menuArrow, { borderBottomColor: colors.surfaceVariant }]} />
                 {/* 我的过去 */}
                 <TouchableOpacity
                   style={styles.menuItem}
                   onPress={handleMyPastAgent}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.menuText}>我的过去</Text>
+                  <Text style={[styles.menuText, { color: colors.textPrimary }]}>我的过去</Text>
                 </TouchableOpacity>
                 <View style={styles.menuDivider} />
                 {/* 人生导师 */}
@@ -261,7 +261,7 @@ export default function HomeScreen() {
                   onPress={handleLifePlanner}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.menuText}>人生导师</Text>
+                  <Text style={[styles.menuText, { color: colors.textPrimary }]}>人生导师</Text>
                 </TouchableOpacity>
               </View>
             </TouchableWithoutFeedback>
@@ -412,7 +412,6 @@ const styles = StyleSheet.create({
   },
   menuText: {
     fontSize: 15,
-    color: "#fff",
   },
   menuDivider: {
     height: StyleSheet.hairlineWidth,

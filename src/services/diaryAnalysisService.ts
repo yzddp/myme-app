@@ -161,9 +161,20 @@ export const diaryAnalysisService = {
   async updateAnalyzeSettings(
     settings: UpdateDiaryAnalyzeSettingsRequest,
   ): Promise<AnalysisSettingsV2Response> {
+    // 将 time: null 转为 undefined，避免后端 IsMilitaryTime 验证对 null 失败
+    const cleanSettings = Object.fromEntries(
+      Object.entries(settings).map(([key, period]) => {
+        if (!period || typeof period !== "object") return [key, period];
+        const cleaned: Record<string, unknown> = { ...period };
+        if (cleaned.time === null) delete cleaned.time;
+        if (cleaned.day === null) delete cleaned.day;
+        if (cleaned.month === null) delete cleaned.month;
+        return [key, cleaned];
+      }),
+    );
     const response = await apiService.put<any>(
       DIARY_ANALYSIS_ENDPOINTS.settings,
-      settings,
+      cleanSettings,
     );
     return {
       settings: normalizeAnalyzeSettings(response.settings ?? response),

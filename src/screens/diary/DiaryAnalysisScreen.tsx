@@ -11,12 +11,11 @@ import {
   Button,
   SegmentedButtons,
   Chip,
-  IconButton,
 } from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
 import { useDiaryStore } from "../../store/diaryStore";
 import type { DiaryPeriodType } from "../../types/diary";
+import AppHeader from "../../components/AppHeader";
 
 interface DiaryAnalysisScreenProps {
   navigation?: any;
@@ -65,26 +64,6 @@ export const DiaryAnalysisScreen: React.FC<DiaryAnalysisScreenProps> = ({
     },
     scrollView: {
       flex: 1,
-    },
-    header: {
-      padding: 20,
-      alignItems: "center",
-      flexDirection: "row",
-      justifyContent: "space-between",
-    },
-    headerCenter: {
-      flex: 1,
-      alignItems: "center",
-    },
-    title: {
-      fontSize: 24,
-      fontWeight: "bold",
-      color: colors.textPrimary,
-    },
-    subtitle: {
-      fontSize: 14,
-      color: colors.textSecondary,
-      marginTop: 4,
     },
     periodContainer: {
       paddingHorizontal: 20,
@@ -210,32 +189,21 @@ export const DiaryAnalysisScreen: React.FC<DiaryAnalysisScreenProps> = ({
   });
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <AppHeader
+        title="日记分析"
+        subtitle="了解你的内心世界"
+        leftIcon="arrow-left"
+        onLeftPress={() => navigation?.goBack()}
+        rightIcon="tune-variant"
+        onRightPress={() => navigation?.navigate?.("DiaryAnalysisSettings")}
+      />
       <ScrollView
         style={styles.scrollView}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        {/* 标题 */}
-        <View style={styles.header}>
-          <IconButton
-            icon="arrow-left"
-            iconColor={colors.primary}
-            size={24}
-            onPress={() => navigation?.goBack()}
-          />
-          <View style={styles.headerCenter}>
-            <Text style={styles.title}>日记分析</Text>
-            <Text style={styles.subtitle}>了解你的内心世界</Text>
-          </View>
-          <IconButton
-            icon="tune-variant"
-            iconColor={colors.primary}
-            size={22}
-            onPress={() => navigation?.navigate?.("DiaryAnalysisSettings")}
-          />
-        </View>
 
         {/* 周期选择 */}
         <View style={styles.periodContainer}>
@@ -371,7 +339,7 @@ export const DiaryAnalysisScreen: React.FC<DiaryAnalysisScreenProps> = ({
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
